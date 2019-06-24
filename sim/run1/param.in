@@ -1,0 +1,50 @@
+)O+_05 Integration parameters  (WARNING: Do not delete this line!!)
+) Lines beginning with `)' are ignored.
+)---------------------------------------------------------------------
+) Important integration parameters:
+)---------------------------------------------------------------------
+  algorithm (MVS, BS, BS2, RADAU, HYBRID etc) =  BS
+ start time (days) = 0
+ stop time (days) = 665250000.000000
+  output interval (days) =   365250.000000000000     
+  timestep (days) =    3.0000000000000000     
+  accuracy parameter =    9.9999999999999998E-013
+)---------------------------------------------------------------------
+) Integration options:
+)---------------------------------------------------------------------
+ stop integration after a close encounter = no 
+ allow collisions to occur = yes
+ include collisional fragmentation = no 
+ express time in days or years =  days 
+ express time relative to integration start time = no 
+ output precision = high
+ < Not used at present >
+ include relativity in integration = no 
+ include user-defined force = yes
+)---------------------------------------------------------------------
+) These parameters do not need to be adjusted often:
+)---------------------------------------------------------------------
+  ejection distance (AU) =    1000.0000000000000     
+  radius of central body (AU) =    5.0000000000000001E-003
+  central mass (solar masses) =    1.000000000000000     
+  central J2 =    0.0000000000000000     
+  central J4 =    0.0000000000000000     
+  central J6 =    0.0000000000000000     
+  < Not used at present >
+  < Not used at present >
+  Hybrid integrator changeover (Hill radii) =    3.0000000000000000     
+  number of timesteps between data dumps =       650000
+  number of timesteps between periodic effects =          100
+ turbulent strength alphad =     1.0000000000000000E-003
+ disk viscous alpha =     1.0000000000000000E-003
+ gas accretion rate (Msun/yr) =     1.0000000000000000E-007
+ stellar luminosity (Lsun) =   1.000000000000000     
+ disk intial size (AU) =   100.0     
+ pebble mass flux (Mearth/yr) =    4.0000000000000000E-004
+ pebble's stokes number =    1E-001
+ opacity coefficient =    1E-002
+allow planet mass increas by pebble accretion  = yes
+include the viscously heated region  = yes
+include the time evolution of accretion rate  = no
+include disk migration = yes 
+include pebble isolation mass = no 

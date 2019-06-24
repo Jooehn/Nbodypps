@@ -1,0 +1,60 @@
+
+           Integration parameters
+           ----------------------
+
+   Algorithm: Bulirsch-Stoer (general)
+
+   Integration start epoch:               0.0000000 days 
+   Integration stop  epoch:       665250000.0000000
+   Output interval:                  365250.000
+   Output precision:                 high
+
+   Initial timestep:                3.000 days 
+   Accuracy parameter:              1.0000E-12
+   Central mass:                    1.0000E+00 solar masses
+   J_2:                              0.0000E+00
+   J_4:                              0.0000E+00
+   J_6:                              0.0000E+00
+   Ejection distance:               1.0000E+03 AU
+   Radius of central body:          5.0000E-03 AU
+
+   Includes collisions:                 yes
+   Includes fragmentation:              no 
+   Includes relativity:                 no 
+   Includes user-defined force routine: yes
+
+   Number of Big bodies:        1
+   Number of Small bodies:      0
+
+
+           Integration details
+           -------------------
+
+   Initial energy:           -1.47956E-11 solar masses AU^2 day^-2 
+   Initial angular momentum:  8.93847E-09 solar masses AU^2 day^-1 
+
+ WARNING: No Small bodies are present.
+
+No need to synchronize epochs since we don't have small bodies
+
+   Beginning the main integration.
+
+
+   Integration complete.
+
+   Fractional energy change due to integrator:   1.42205E+03
+   Fractional angular momentum change:           2.01069E+02
+
+   Fractional energy change due to collisions/ejections:  0.00000E+00
+   Fractional angular momentum change:                    0.00000E+00
+
+   Continuing integration from dump files at      665250000.00000 days 
+
+
+   Integration complete.
+
+   Fractional energy change due to integrator:   1.42205E+03
+   Fractional angular momentum change:           2.01069E+02
+
+   Fractional energy change due to collisions/ejections:  0.00000E+00
+   Fractional angular momentum change:                    0.00000E+00
