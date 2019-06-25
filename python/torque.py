@@ -15,7 +15,6 @@ nint = 1e+2
 k1 = 200
 k2 = 200
 
-
 M_s = 1
 mdot_gas = 1e-7*M_s**2
 L_s = M_s**2

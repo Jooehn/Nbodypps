@@ -64,10 +64,10 @@ def readdata(filename):
 
 ##### defualt simulation infomation ####
 # number of big planets
-nbig = 1
+nbig = 6
 big = True # plot big planets
 generate_newdata = False
-source = 'run1'
+source = 'migtest'
 #source = 'run_md_11'
 print('data file', source)
 
@@ -75,7 +75,7 @@ print('data file', source)
 ##### defualt figure parameters ####
 tmin = 1e+2 # year
 tmax = 2e+6 # year
-amin = 1.# 1
+amin = .1# 1
 amax = 50 #8
 emin = 1e-8
 emax = 0.02
@@ -140,44 +140,44 @@ for k in range(0,4):
             time_big, semi_big, ecc_big, inc_big, mass_big, fwater_big = \
             readdata(filename)
             if output =='mass_time':
-                plt.plot(time_big,mass_big,'b',linewidth=lw3)
+                axes.plot(time_big,mass_big,'b',linewidth=lw3)
                 axes.set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axes.set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axes.set_ylim(mmin,mmax)
                 axes.set_yticks([3.e-8,3.e-7,3e-6,3e-5,3e-4],['$10^{-2}$','$10^{-1}$','$1$','$10$','$100$'])
                 #We also plot the data in a separate figure
-                axlist[k].plot(time_big,mass_big,'b',linewidth=lw3)
+                axlist[k].plot(time_big,mass_big,linewidth=lw3)
                 axlist[k].set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axlist[k].set_ylim(mmin,mmax)
                 axlist[k].set_yticks([3.e-8,3.e-7,3e-6,3e-5,3e-4],['$10^{-2}$','$10^{-1}$','$1$','$10$','$100$'])
             if output =='semi_time':
-                axes.plot(time_big,semi_big,'b',linewidth=lw3)
+                axes.plot(time_big,semi_big,linewidth=lw3)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axes.set_ylim(amin,amax)
                 
-                axlist[k].plot(time_big,semi_big,'b',linewidth=lw3)
+                axlist[k].plot(time_big,semi_big,linewidth=lw3)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axlist[k].set_ylim(amin,amax)
             if output =='ecc_time':
-                axes.plot(time_big,ecc_big,'b',linewidth=lw3)
+                axes.plot(time_big,ecc_big,linewidth=lw3)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Eccentricity}$')
                 axes.set_ylim(emin,emax)
                 
-                axlist[k].plot(time_big,ecc_big,'b',linewidth=lw3)
+                axlist[k].plot(time_big,ecc_big,linewidth=lw3)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Eccentricity}$')
                 axlist[k].set_ylim(emin,emax)
             if output =='inc_time':
-                axes.plot(time_big,ecc_big,'b',linewidth=lw3)
+                axes.plot(time_big,ecc_big,linewidth=lw3)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Inclination (radian)}$')
                 axes.set_ylim(imin,imax)
                 
-                axlist[k].plot(time_big,ecc_big,'b',linewidth=lw3)
+                axlist[k].plot(time_big,ecc_big,linewidth=lw3)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Inclination (radian)}$')
                 axlist[k].set_ylim(imin,imax)
