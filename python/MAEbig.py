@@ -11,7 +11,8 @@ import matplotlib
 import subprocess as sp
 import matplotlib.pyplot as plt
 from astrounit import *
-
+from diskmodel import rtrans,rsnow
+from m6_funcs import process_input
 
 plt.rcParams['font.size']= 16
 plt.rcParams['xtick.minor.visible'], plt.rcParams['xtick.top'] = True,True
@@ -63,14 +64,35 @@ def readdata(filename):
 
 
 ##### defualt simulation infomation ####
-# number of big planets
-nbig = 6
+#If an input file is provided, we use the given inputs from it
+try:
+    sys.argv[1]
+except (IndexError,NameError):
+    nbig    = int(vars_[0][0])
+    source  = 'migtest'
+else:
+    inputfile = sys.argv[1] #The vars.ini file
+    vars_   = process_input(inputfile)
+    nbig    = int(vars_[0][0])
+    source  = 'migtest'
+    source  = vars_[5][0].rstrip('\n')
+
 big = True # plot big planets
 generate_newdata = False
-source = 'migtest'
-#source = 'run_md_11'
 print('data file', source)
 
+#We calculate the position of rtrans and rsnow
+M_s = 1
+mdot_gas = 1e-7*M_s**2
+L_s = M_s**2
+alpha_v = 1e-3
+alpha_d = 1e-3
+kap = 1e-2
+opt_vis = True
+
+# calculate the transtion radius for two disk regions
+r_trans = rtrans(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+r_snow = rsnow(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
 
 ##### defualt figure parameters ####
 tmin = 1e+2 # year
@@ -120,12 +142,23 @@ fig_all, ax = plt.subplots(2,2,figsize=(12,8))
 axlist = np.ravel(ax)
 
 for k in range(0,4): 
+    fig, axes = plt.subplots(figsize=(8,5))
 ## k is the output figure type  ##
     if k == 0:
         output = 'mass_time' 
         print (output)
     if k == 1: 
         output = 'semi_time'
+        
+        axes.axhline(r_trans,linewidth=lw2, color='c', linestyle='solid')
+        axes.axhline(r_snow,linewidth=lw2, color='m', linestyle='solid')
+        axes.text(200,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
+        axes.text(200,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
+        
+        axlist[k].axhline(r_trans,linewidth=lw2, color='c', linestyle='solid')
+        axlist[k].axhline(r_snow,linewidth=lw2, color='m', linestyle='solid')
+        axlist[k].text(200,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
+        axlist[k].text(200,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
         print (output)
     if k == 2: 
         output = 'ecc_time'
@@ -133,7 +166,6 @@ for k in range(0,4):
     if k == 3: 
         output = 'inc_time'
         print (output)
-    fig, axes = plt.subplots(figsize=(8,5))
     if big == True and nbig >0:
         for i in range(1, nbig+1):
             filename = sourcedir+ 'P'+ str(i)+'.aei'

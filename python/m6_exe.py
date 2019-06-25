@@ -9,6 +9,7 @@ Created on Tue Jun 25 10:33:31 2019
 import numpy as np
 import os
 from subprocess import call
+from astrounit import *
 from sys import argv
 from m6_funcs import *
 
@@ -22,19 +23,21 @@ try:
 except (IndexError,NameError):
     source  = 'migtest' #Source directory
     
-    N       = 3   #Number of planet embryos
+    N       = 1   #Number of planet embryos
     amin    = 10  #Min semi-major axis val
     astep   = 5   #Step in between planets
+    pmass   = 30  #Planetary mass in earth masses
     
     T       = 2e6 #End time in yr
 else:
     inputfile = argv[1] #The vars.ini file
     vars_   = process_input(inputfile)
     N       = int(vars_[0][0])
-    amin    = float(vars_[1][0])
-    astep   = float(vars_[2][0])
-    T       = float(vars_[3][0])
-    source  = vars_[4][0].rstrip('\n')
+    pmass   = float(vars_[1][0])
+    amin    = float(vars_[2][0])
+    astep   = float(vars_[3][0])
+    T       = float(vars_[4][0])
+    source  = vars_[5][0].rstrip('\n')
 ############### Setup ###############
 
 #We first swap into the source directory
@@ -54,7 +57,7 @@ avals = np.arange(amin,amax,astep)
 
 #Next we set up the physical properties and the phase of the planets and
 #store them in an array of size (N,10)
-mp = 3e-7
+mp = pmass*(Mearth/Msun)
 rp = 1.0
 dp = 1.5
 xp = 1.5e-9
@@ -84,3 +87,4 @@ for j in bad_ext:
 print('Initiating integration')
 call(['./mercury'])
 call(['./element'])
+call(['python','MAEbig.py','vars.ini'])
