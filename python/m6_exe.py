@@ -87,4 +87,6 @@ for j in bad_ext:
 print('Initiating integration')
 call(['./mercury'])
 call(['./element'])
+#Finally, we create figures
+os.chdir(pydir)
 call(['python','MAEbig.py','vars.ini'])
