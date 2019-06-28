@@ -59,7 +59,7 @@ plt.close('all') # delete figure
 
 levels = np.linspace(-4.5,4.5,300)
 cmap='seismic'
-fig, [ax1,ax2] = plt.subplots(2,sharex= True, sharey = False, gridspec_kw={'height_ratios':[2.,4]}, figsize=(6,5), num= 3)
+fig, [ax1,ax2] = plt.subplots(2,sharex= True, sharey = False, gridspec_kw={'height_ratios':[2.,4]}, figsize=(8,6), num= 3)
 fig.subplots_adjust(hspace=0.07)
 yy = np.linspace(0.1,1e+4,len(r_t))
 ax1.plot(r,Surf,linewidth=lw1, color='k')
@@ -67,10 +67,10 @@ ax1.plot(r_t,yy,linewidth=lw2, color='c', linestyle='solid')
 ax1.plot(r_s,yy,linewidth=lw2, color='m', linestyle='solid')
 ax1.semilogy()
 ax1.semilogx()
-ax1.set_yticks([1,100])
-ax1.set_yticklabels(['$1$','$10^{2}$'],fontsize=fs1)
+ax1.set_yticks([1,100,1000])
+ax1.set_yticklabels(['$1$','$10^{2}$','$10^{3}$'],fontsize=fs1)
 ax1.set_ylabel('$ \\rm \\Sigma_{g} \\ [gcm^{-2}]$',fontsize=fs1)
-ax1.set_ylim(0.5,1.e+3)
+ax1.set_ylim(0.5,1.e+4)
 axx = ax1.twiny()
 axx.semilogx()
 axx.set_xlim(ax1.get_xlim())
@@ -117,12 +117,8 @@ ax2.set_yticklabels(['$0.1$','$0.3$','$1$','$3$','$10$','$30$'],fontsize=fs1)
 cbax = fig.add_axes([0.15, 0.04, 0.75, 0.03]) # setup colorbar axes. 
 cb1 = fig.colorbar(CS, cmap=cmap,cax=cbax, norm=levels,ticks=[-4,-2,0,2,4], orientation='horizontal') 
 
+add_date(fig,xcoord=0.85,ycoord=0.91)
+
 fig.savefig('migration_map.pdf',orientation='landscape', format='pdf',bbox_inches='tight', pad_inches=0.01)
-
-
-
-
-
-
 
 sp.call(['mv', 'migration_map.pdf', '../figure/'])

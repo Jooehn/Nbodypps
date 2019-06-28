@@ -13,14 +13,7 @@ import matplotlib.pyplot as plt
 from astrounit import *
 from diskmodel import rtrans,rsnow
 from m6_funcs import process_input
-
-plt.rcParams['font.size']= 16
-plt.rcParams['xtick.minor.visible'], plt.rcParams['xtick.top'] = True,True
-plt.rcParams['ytick.minor.visible'], plt.rcParams['ytick.right'] = True,True
-plt.rcParams['xtick.direction'], plt.rcParams['ytick.direction'] = 'in','in'
-plt.rcParams['xtick.labelsize'] = plt.rcParams['ytick.labelsize'] = 14
-plt.rcParams['axes.labelsize'] = 18
-plt.rcParams['mathtext.fontset'] = 'cm'
+from plotset import *
 
 
 ###################################################
@@ -74,7 +67,6 @@ else:
     inputfile = sys.argv[1] #The vars.ini file
     vars_   = process_input(inputfile)
     nbig    = int(vars_[0][0])
-    source  = 'migtest'
     source  = vars_[5][0].rstrip('\n')
 
 big = True # plot big planets
@@ -103,8 +95,8 @@ emin = 1e-8
 emax = 0.02
 imin = 1e-8
 imax = 0.02
-mmin = 3e-8#1e-11
-mmax = 1e-4
+mmin = 1e-4#1e-11
+mmax = 100
 dmmin = 1e-16
 dmmax = 3e-10
 # linewidth 
@@ -150,13 +142,13 @@ for k in range(0,4):
     if k == 1: 
         output = 'semi_time'
         
-        axes.axhline(r_trans,linewidth=lw2, color='c', linestyle='solid')
-        axes.axhline(r_snow,linewidth=lw2, color='m', linestyle='solid')
+        axes.axhline(r_trans,linewidth=lw2, color='c', linestyle='--')
+        axes.axhline(r_snow,linewidth=lw2, color='m', linestyle='--')
         axes.text(200,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
         axes.text(200,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
         
-        axlist[k].axhline(r_trans,linewidth=lw2, color='c', linestyle='solid')
-        axlist[k].axhline(r_snow,linewidth=lw2, color='m', linestyle='solid')
+        axlist[k].axhline(r_trans,linewidth=lw2, color='c', linestyle='--')
+        axlist[k].axhline(r_snow,linewidth=lw2, color='m', linestyle='--')
         axlist[k].text(200,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
         axlist[k].text(200,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
         print (output)
@@ -172,17 +164,19 @@ for k in range(0,4):
             time_big, semi_big, ecc_big, inc_big, mass_big, fwater_big = \
             readdata(filename)
             if output =='mass_time':
-                axes.plot(time_big,mass_big,'b',linewidth=lw3)
+                axes.plot(time_big,mass_big*(Msun/Mearth),'b',linewidth=lw3)
                 axes.set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axes.set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axes.set_ylim(mmin,mmax)
-                axes.set_yticks([3.e-8,3.e-7,3e-6,3e-5,3e-4],['$10^{-2}$','$10^{-1}$','$1$','$10$','$100$'])
+#                axes.set_yticks([3.e-8,3.e-7,3e-6,3e-5,3e-4])
+#                axes.set_yticklabels(['$10^{-2}$','$10^{-1}$','$1$','$10$','$100$'])
                 #We also plot the data in a separate figure
-                axlist[k].plot(time_big,mass_big,linewidth=lw3)
+                axlist[k].plot(time_big,mass_big*(Msun/Mearth),linewidth=lw3)
                 axlist[k].set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axlist[k].set_ylim(mmin,mmax)
-                axlist[k].set_yticks([3.e-8,3.e-7,3e-6,3e-5,3e-4],['$10^{-2}$','$10^{-1}$','$1$','$10$','$100$'])
+#                axlist[k].set_yticks([3.e-8,3.e-7,3e-6,3e-5,3e-4])
+#                axlist[k].set_yticklabels(['$10^{-2}$','$10^{-1}$','$1$','$10$','$100$'])
             if output =='semi_time':
                 axes.plot(time_big,semi_big,linewidth=lw3)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
@@ -223,9 +217,9 @@ for k in range(0,4):
         axlist[k].semilogx()
         axlist[k].semilogy()
 #        axlist[k].set_xticks([1e+2,1e+3,1e+4,1e+5,1e+6],['$10^{2}$','$10^{3}$','$10^{4}$','$10^{5}$','$10^{6}$'])
-            
+    add_date(fig_all)
+    add_date(fig)            
     fig_all.savefig(source+'_'+'all'+'.pdf',orientation='landscape', format='pdf',bbox_inches='tight', pad_inches=0.1)
     fig.savefig(source+'_'+output+'.pdf',orientation='landscape', format='pdf',bbox_inches='tight', pad_inches=0.1)
-
 
 os.chdir(pydir)
