@@ -79,24 +79,23 @@ subroutine mfo_user (time,jcen,n_bodies,n_big_bodies,mass, phyradius, position, 
   do planet = 2, n_bodies
 ! planet's location in disk
     radii = (position(1,planet)**2 + position(2,planet)**2)**0.5 
-! truncate the disk at 0.05 AU
-    if (planet <= n_big_bodies) then  ! for big bodies 
+! truncate the disk at 0.2 AU
+    if (radii >= 0.2d0) then 
+      if (planet <= n_big_bodies) then  ! for big bodies 
 ! calculate the acc from the migration 
-      call  type1 (time,mass(1),planet,mass(planet),position(:,planet),velocity(:,planet),acc_mig(:))
-      acceleration(1,planet) =  + acc_mig(1)
-      acceleration(2,planet) =  + acc_mig(2)
-      acceleration(3,planet) =  + acc_mig(3)
-! calculate the gas drag effect
-        !call  gasdrag (time,mass(1),planet,mass(planet), phyradius(planet),position(:,planet),velocity(:,planet),acc_drag(:))
-        !acceleration(1,planet) = + acc_drag(1) 
-        !acceleration(2,planet) = + acc_drag(2) 
-        !acceleration(3,planet) = + acc_drag(3) 
-    !else ! this is for small bodies, use superparticle approach
-        !msmall=mass(planet)/50.d0 ! 1 sp = 50 plts
-        !call  gasdrag (time,mass(1),planet,msmall, phyradius(planet),position(:,planet),velocity(:,planet),acc_drag(:))
-        !acceleration(1,planet) =  acc_drag(1)
-        !acceleration(2,planet) =  acc_drag(2)
-        !acceleration(3,planet) =  acc_drag(3)
+        call  type1 (time,mass(1),planet,mass(planet),position(:,planet),velocity(:,planet),acc_mig(:))
+        acceleration(1,planet) =  + acc_mig(1)
+        acceleration(2,planet) =  + acc_mig(2)
+        acceleration(3,planet) =  + acc_mig(3)
+      else 
+        acceleration(1,planet) =  0.0d0
+        acceleration(2,planet) =  0.0d0
+        acceleration(3,planet) =  0.0d0 
+      end if
+     else ! inside the cavity 
+        acceleration(1,planet) =  0.0d0
+        acceleration(2,planet) =  0.0d0
+        acceleration(3,planet) =  0.0d0 
     end if
   end do
   

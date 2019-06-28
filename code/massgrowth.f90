@@ -179,7 +179,7 @@ subroutine pebbleaccretion (t,hstep,nbod,m,x,v,rphys,rho,m_x)
     ! ###############################################################
     ! ###stop the integration if planet orbit is less than 0.1 AU ###
     ! ###############################################################
-    if (rdisk(i) <0.1d0 .and. asemi(i) < 0.1d0) stop
+    !if (rdisk(i) <0.1d0 .and. asemi(i) < 0.1d0) stop
   end do
 
 

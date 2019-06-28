@@ -47,14 +47,3 @@ No need to synchronize epochs since we don't have small bodies
 
    Fractional energy change due to collisions/ejections:  0.00000E+00
    Fractional angular momentum change:                    0.00000E+00
-
-   Continuing integration from dump files at      665250000.00000 days 
-
-
-   Integration complete.
-
-   Fractional energy change due to integrator:   1.42205E+03
-   Fractional angular momentum change:           2.01069E+02
-
-   Fractional energy change due to collisions/ejections:  0.00000E+00
-   Fractional angular momentum change:                    0.00000E+00

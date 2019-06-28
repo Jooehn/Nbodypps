@@ -46,5 +46,5 @@
 allow planet mass increas by pebble accretion  = yes
 include the viscously heated region  = yes
 include the time evolution of accretion rate  = no
-include disk migration = yes 
+include disk migration = yes
 include pebble isolation mass = no 
