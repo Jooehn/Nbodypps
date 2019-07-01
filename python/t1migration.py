@@ -41,6 +41,9 @@ def tmig_1(mp,a):
 
 a = np.linspace(0.1,100,50)
 
+r_trans = rtrans(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+r_snow  = rsnow(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+
 fig = plt.figure(figsize=(8,6))
 
 masslist = [1,10,30,50,100]
@@ -54,6 +57,11 @@ plt.xscale('log')
 plt.yscale('log')
 plt.xlim(0.1,100)
 plt.ylim(1e2,2e6)
+
+plt.axvline(r_trans,linewidth=lw2, color='c', linestyle='--')
+plt.axvline(r_snow,linewidth=lw2, color='m', linestyle='--')
+plt.text(1.04*r_trans,5e5,'$\\rm r_{\\rm trans}$', fontsize= fs2,color='c')
+plt.text(0.68*r_snow,5e5,'$\\rm r_{\\rm ice}$', fontsize= fs2,color='m')
 
 labelLines(plt.gca().get_lines(),fontsize=12)
 add_date(fig)

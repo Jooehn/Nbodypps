@@ -217,9 +217,11 @@ for k in range(0,4):
         axlist[k].semilogx()
         axlist[k].semilogy()
 #        axlist[k].set_xticks([1e+2,1e+3,1e+4,1e+5,1e+6],['$10^{2}$','$10^{3}$','$10^{4}$','$10^{5}$','$10^{6}$'])
-    add_date(fig_all)
+    
     add_date(fig)            
-    fig_all.savefig(source+'_'+'all'+'.pdf',orientation='landscape', format='pdf',bbox_inches='tight', pad_inches=0.1)
     fig.savefig(source+'_'+output+'.pdf',orientation='landscape', format='pdf',bbox_inches='tight', pad_inches=0.1)
+    
+add_date(fig_all)
+fig_all.savefig(source+'_'+'all'+'.pdf',orientation='landscape', format='pdf',bbox_inches='tight', pad_inches=0.1)
 
 os.chdir(pydir)

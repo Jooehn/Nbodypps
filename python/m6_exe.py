@@ -21,12 +21,12 @@ from m6_funcs import *
 try:
     argv[1]
 except (IndexError,NameError):
-    source  = 'migtest3' #Source directory
+    source  = 'migtest' #Source directory
     
     N       = 1   #Number of planet embryos
     amin    = 3  #Min semi-major axis val
     astep   = 5   #Step in between planets
-    mrange  = np.array([1,50])  #Planetary mass in earth masses
+    mrange  = np.array([50,50])  #Planetary mass in earth masses
     
     T       = 2e5 #End time in yr
 else:
@@ -79,8 +79,10 @@ bignames = ['P{}'.format(i+1) for i in range(N)]
 
 big_input(bignames,bigdata,asteroidal=True)
 
-#We set up the end time of the run
-setup_end_time(T)
+#We set up the end time of the run which is divided into shorter integrations of 
+#length dt
+dt  = 1e4
+setup_end_time(dt)
 
 #We also remove old files
 bad_ext = ['*.dmp','*.tmp','*.aei','*.clo','*.out']        
@@ -89,9 +91,27 @@ for j in bad_ext:
 
 ############### Executing ###############
 print('Initiating integration')
-call(['./mercury'])
+t = 0
+while t < T:
+    
+    #We first perform the integration by calling MERCURY
+    
+    call(['./mercury'])    
+        
+    #Since planets residing at our cavity at 0.2 AU will slow the integration
+    #down significantly, we check if there is such a planet and 
+    #remove it if this is indeed the case
+    all_in_cavity = check_cavity_planet(bignames)
+    if all_in_cavity:
+        print('All planets have entered cavity after {} yr'.format(t+dt))
+        print('Stopping integration')
+        break
+    extend_stop_time(dt)
+    t += dt
+
 print('Creating .aei files')
-call(['./element'])
+if not all_in_cavity:
+    call(['./element'])
 #Finally, we create figures
 os.chdir(pydir)
 print('Creating figures')

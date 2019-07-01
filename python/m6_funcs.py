@@ -9,9 +9,10 @@ Some functions that handles MERCURY input files
 """
 
 import numpy as np
+import os
 from tempfile import mkstemp
+from subprocess import call
 from shutil import move
-from os import fdopen, remove
 
 def setup_end_time(T,T_start=0):
     
@@ -28,7 +29,7 @@ def setup_end_time(T,T_start=0):
     #Makes temporary file
     fh, abs_path = mkstemp()
     
-    with fdopen(fh,'w') as new_file:
+    with os.fdopen(fh,'w') as new_file:
         with open('param.in') as old_file:
             for line in old_file:
                 if start_str in line:
@@ -50,7 +51,7 @@ def setup_end_time(T,T_start=0):
                 else:
                     new_file.write(line)
     #Remove original file and move new file
-    remove('param.in')
+    os.remove('param.in')
     move(abs_path, 'param.in')
     
 def extend_stop_time(T):
@@ -65,7 +66,7 @@ def extend_stop_time(T):
     #Makes temporary file
     fh, abs_path = mkstemp()
     
-    with fdopen(fh,'w') as new_file:
+    with os.fdopen(fh,'w') as new_file:
         with open('param.dmp') as old_file:
             for line in old_file:
                 if stime_str in line:
@@ -80,7 +81,7 @@ def extend_stop_time(T):
                 else:
                     new_file.write(line)
     #Remove original file and move new file
-    remove('param.dmp')
+    os.remove('param.dmp')
     move(abs_path, 'param.dmp')
     
 def big_input(names,bigdata,asteroidal=False,epoch=0):
@@ -141,3 +142,82 @@ def process_input(file_): #Function that reads the input file if any
         else:
             h_file.append(line.split('\t'))
     return h_file
+
+def check_timestep():
+    """Checks if the timestep has gone below values of 1 day. Returns either
+    True or False depending on the timestep size."""
+    
+    with open('param.dmp') as param:
+        for line in param:
+            if 'timestep' in line:
+                timestep = float(line.split()[-1])
+                print('Current timestep: {} days'.format(timestep))
+                if timestep < 1:
+                    return True
+                else:
+                    return False
+
+def check_cavity_planet(names):
+    """Removes planet that has entered our cavity in order to keep the timestep
+    from converging at low values and thereby slowing down our integration.
+        names: The names of our planets
+        data: The corresponding data input data for the planets
+    Returns True if all planets have entered the cavity and the integration
+    should be terminated."""
+    
+    #We generate output files
+    call(['./element'])
+
+    N = len(names)
+    in_cavity = np.full(N,False)
+    
+    #We check the element file for the semi-major axis values of our planets
+    with open('element.out') as element:
+        elelines = element.readlines()
+        for i in range(len(elelines[2:])):
+            params = elelines[2:][i].split()
+            x = float(params[9])
+            y = float(params[10])
+            z = float(params[11])
+            a = np.sqrt(x**2+y**2+z**2)
+            #If a is less than our cavity value which is 0.2 AU we register the
+            #corresponding planet
+            if a <= 0.2:
+                in_cavity[i] = True
+    #We extract the ids of the planets that are in the cavity and remove them
+    if np.all(in_cavity):
+        return True
+    elif np.any(in_cavity):
+        cavity_ids  = np.where(in_cavity)[0]
+        old_names = []
+        for i in range(len(cavity_ids)):
+            print('We remove P{} from the integration\n'.format(cavity_ids[i]+1))
+            old_names.append(names[cavity_ids[i]])
+            new_names = names.remove(names[cavity_ids[i]])
+        #We loop through each line in big.dmp and remove the information of the
+        #planets inside the cavity
+        
+        #Makes temporary file
+        fh, abs_path = mkstemp()
+    
+        with os.fdopen(fh,'w') as new_file:
+            with open('big.dmp') as bigfile:
+                biglines = bigfile.readlines()
+                i = 6
+                while len(old_names)>0:
+                    print(old_names)
+                    if old_names[0] in biglines[i]:
+                        del biglines[i:i+4]
+                        del old_names[0]
+                    else:
+                        i += 4
+            new_file.writelines(biglines)
+        #Remove original file and move new file
+        for i in range(len(new_names)):
+            os.remove(new_names[i]+'.aei')    
+        os.remove('big.dmp')
+        move(abs_path, 'big.dmp')    
+        return False
+    else:
+        call(['find',os.getcwd(),'-maxdepth','1','-type','f','-name','*.aei','-delete'])
+        return False
