@@ -157,7 +157,7 @@ def check_timestep():
                 else:
                     return False
 
-def check_cavity_planet(names):
+def check_cavity_planet(namelist):
     """Removes planet that has entered our cavity in order to keep the timestep
     from converging at low values and thereby slowing down our integration.
         names: The names of our planets
@@ -166,8 +166,8 @@ def check_cavity_planet(names):
     should be terminated."""
     
     #We generate output files
-    call(['./element'])
-
+#    call(['./element'])
+    names = namelist.copy()
     N = len(names)
     in_cavity = np.full(N,False)
     
@@ -192,8 +192,8 @@ def check_cavity_planet(names):
         old_names = []
         for i in range(len(cavity_ids)):
             print('We remove P{} from the integration\n'.format(cavity_ids[i]+1))
-            old_names.append(names[cavity_ids[i]])
-            new_names = names.remove(names[cavity_ids[i]])
+            old_names.append(namelist[cavity_ids[i]])
+            names.remove(namelist[cavity_ids[i]])
         #We loop through each line in big.dmp and remove the information of the
         #planets inside the cavity
         
@@ -205,7 +205,6 @@ def check_cavity_planet(names):
                 biglines = bigfile.readlines()
                 i = 6
                 while len(old_names)>0:
-                    print(old_names)
                     if old_names[0] in biglines[i]:
                         del biglines[i:i+4]
                         del old_names[0]
@@ -213,11 +212,13 @@ def check_cavity_planet(names):
                         i += 4
             new_file.writelines(biglines)
         #Remove original file and move new file
-        for i in range(len(new_names)):
-            os.remove(new_names[i]+'.aei')    
+        for i in range(len(names)):
+            os.remove(names[i]+'.aei')    
         os.remove('big.dmp')
         move(abs_path, 'big.dmp')    
         return False
     else:
         call(['find',os.getcwd(),'-maxdepth','1','-type','f','-name','*.aei','-delete'])
         return False
+os.chdir(os.getcwd()+'/../sim/migtest3')
+check_cavity_planet(bignames)
