@@ -166,7 +166,7 @@ def check_cavity_planet(namelist):
     should be terminated."""
     
     #We generate output files
-#    call(['./element'])
+    call(['./element'])
     names = namelist.copy()
     N = len(names)
     in_cavity = np.full(N,False)
