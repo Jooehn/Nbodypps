@@ -220,5 +220,3 @@ def check_cavity_planet(namelist):
     else:
         call(['find',os.getcwd(),'-maxdepth','1','-type','f','-name','*.aei','-delete'])
         return False
-os.chdir(os.getcwd()+'/../sim/migtest3')
-check_cavity_planet(bignames)
