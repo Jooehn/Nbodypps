@@ -156,8 +156,20 @@ def check_timestep():
                     return True
                 else:
                     return False
+            
+def get_names():
+    """Returns a list with the names of the current objects active in our simulation."""
+    
+    with open('big.dmp','r') as bigfile:
+        biglines = bigfile.readlines()
+        
+    nameid = np.arange(6,len(biglines),4)
+        
+    names = [biglines[i].split()[0] for i in nameid]
+    
+    return names
 
-def check_cavity_planet(namelist):
+def check_cavity_planet():
     """Removes planet that has entered our cavity in order to keep the timestep
     from converging at low values and thereby slowing down our integration.
         names: The names of our planets
@@ -167,7 +179,7 @@ def check_cavity_planet(namelist):
     
     #We generate output files
     call(['./element'])
-    names = namelist.copy()
+    names = get_names()
     N = len(names)
     in_cavity = np.full(N,False)
     
@@ -192,8 +204,8 @@ def check_cavity_planet(namelist):
         old_names = []
         for i in range(len(cavity_ids)):
             print('We remove P{} from the integration\n'.format(cavity_ids[i]+1))
-            old_names.append(namelist[cavity_ids[i]])
-            names.remove(namelist[cavity_ids[i]])
+            old_names.append(names[cavity_ids[i]])
+            names.remove(names[cavity_ids[i]])
         #We loop through each line in big.dmp and remove the information of the
         #planets inside the cavity
         
@@ -204,7 +216,7 @@ def check_cavity_planet(namelist):
             with open('big.dmp') as bigfile:
                 biglines = bigfile.readlines()
                 i = 6
-                while len(old_names)>0:
+                while len(biglines)>6:
                     if old_names[0] in biglines[i]:
                         del biglines[i:i+4]
                         del old_names[0]
@@ -218,5 +230,5 @@ def check_cavity_planet(namelist):
         move(abs_path, 'big.dmp')    
         return False
     else:
-        call(['find',os.getcwd(),'-maxdepth','1','-type','f','-name','*.aei','-delete'])
+        call(['find',os.getcwd(),'-maxdepth','1','-type','f','-name',j,'-delete'])
         return False

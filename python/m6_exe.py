@@ -101,7 +101,7 @@ while t < T:
     #Since planets residing at our cavity at 0.2 AU will slow the integration
     #down significantly, we check if there is such a planet and 
     #remove it if this is indeed the case
-    all_in_cavity = check_cavity_planet(bignames)
+    all_in_cavity = check_cavity_planet()
     if all_in_cavity:
         print('All planets have entered cavity after {} yr'.format(t+dt))
         print('Stopping integration')
