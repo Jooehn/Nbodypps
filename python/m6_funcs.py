@@ -230,5 +230,5 @@ def check_cavity_planet():
         move(abs_path, 'big.dmp')    
         return False
     else:
-        call(['find',os.getcwd(),'-maxdepth','1','-type','f','-name',j,'-delete'])
+        call(['find',os.getcwd(),'-maxdepth','1','-type','f','-name','*.aei','-delete'])
         return False
