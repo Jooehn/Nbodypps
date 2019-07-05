@@ -37,7 +37,8 @@ else:
     amin        = float(vars_[2][0])
     astep       = float(vars_[3][0])
     T           = float(vars_[4][0])
-    source      = vars_[5][0].rstrip('\n')
+    st          = float(vars_[5][0])
+    source      = vars_[6][0].rstrip('\n')
 ############### Setup ###############
 
 #We first swap into the source directory
@@ -61,11 +62,13 @@ pmass = np.linspace(mrange[0],mrange[1],N)
 #Next we set up the physical properties and the phase of the planets and
 #store them in an array of size (N,10)
 mp = pmass*(Mearth/Msun)
+ep = np.random.rayleigh(1e-2,N) #We draw eccentricities from a Rayleigh distr.
+ip = 0.5*ep
 rp = 1.0
 dp = 1.5
 xp = 1.5e-9
 
-props = np.array([0,rp,dp,xp,0,0,0,0,0,0])
+props = np.array([0,rp,dp,xp,0,ep,ip,0,0,0])
 
 bigdata    = np.zeros((N,10))
 bigdata[:] = props
@@ -83,6 +86,8 @@ big_input(bignames,bigdata,asteroidal=True)
 #length dt
 dt  = 1e4
 setup_end_time(dt)
+#Furthermore, we set the input Stokes number
+set_stokes_number(st)
 
 #We also remove old files
 bad_ext = ['*.dmp','*.tmp','*.aei','*.clo','*.out']        

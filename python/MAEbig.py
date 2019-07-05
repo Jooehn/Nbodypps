@@ -67,7 +67,8 @@ else:
     inputfile = sys.argv[1] #The vars.ini file
     vars_   = process_input(inputfile)
     nbig    = int(vars_[0][0])
-    source  = vars_[5][0].rstrip('\n')
+    st      = float(vars_[5][0])
+    source  = vars_[6][0].rstrip('\n')
 
 big = True # plot big planets
 generate_newdata = False
@@ -218,9 +219,11 @@ for k in range(0,4):
         axlist[k].semilogy()
 #        axlist[k].set_xticks([1e+2,1e+3,1e+4,1e+5,1e+6],['$10^{2}$','$10^{3}$','$10^{4}$','$10^{5}$','$10^{6}$'])
     
+    fig.suptitle(r'$\tau_s = '+'{:.2E}'.format(st)+'$')
     add_date(fig)            
     fig.savefig(source+'_'+output+'.pdf',orientation='landscape', format='pdf',bbox_inches='tight', pad_inches=0.1)
-    
+
+fig_all.suptitle(r'$\tau_s = '+'{:.2E}'.format(st)+'$')
 add_date(fig_all)
 fig_all.savefig(source+'_'+'all'+'.pdf',orientation='landscape', format='pdf',bbox_inches='tight', pad_inches=0.1)
 

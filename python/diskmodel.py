@@ -34,7 +34,7 @@ def fs(r,r_trans,opt_vis):
     return res 
 
 
-# viscous disk: surface density, temperature, scale hiehgt
+# viscous disk: surface density, temperature, scale height
 def siggas_vis(r,mdot_gas,M_s,alpha,kap):
     sig_vis0 = 740*(mdot_gas/1e-8)**(1./2)*(M_s/1.0)**(1./8)*(alpha/1e-3)**(-3./4)*(kap/0.01)**(-1./4.) # [g/cm^2]
     res = sig_vis0*r**-0.375
@@ -49,7 +49,7 @@ def T_vis(r,mdot_gas,M_s,alpha,kap):
     res = T_vis0*r**-1.125
     return res #[K]
     
-# irradition disk: surface density, temperature, scale hiehgt
+# irradition disk: surface density, temperature, scale height
 def siggas_irr(r,mdot_gas,L_s,M_s,alpha):
     sig_irr0 = 2500*(mdot_gas/1e-8)*(L_s/1.0)**(-2./7)*(M_s/1.0)**(9./14)*(alpha/1e-3)**(-1) # [g/cm^2]
     res = sig_irr0*r**(-15./14)
@@ -238,3 +238,97 @@ def torque(q,r,mdot_gas,L_s,M_s,alpha_v,alpha_d,kap,opt_vis):
     f = torq/factor/siggas(r,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis) # normalized torque
     return torq, f
 
+def tmig_1(mp,a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis=True):
+    """Computes the type I migration time for a given planetary mass at a given
+    semi-major axis.
+    
+    mp: mass given in earth masses
+    a : semi-major axis in AU
+    mdot_gas: the gas accretion rate
+    L_s: stellar luminosity
+    M_s: stellar mass
+    alpha_v: viscous alpha
+    kap: disk opacity coefficient
+    opt_vis: boolean statement for the inclusion of a modulation factor"""
+    
+    sigma_g = siggas(a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)*(AU**2/Msun)
+    hg      = hgas(a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+    
+    t = (M_s/(mp/msuntome))*(M_s/(sigma_g*a**2))*hg**2*(a**3/(4*np.pi**2*M_s))**(0.5)
+    
+    return t #[yr]
+
+def tpeb(mp,a,mdot_gas,mdot_peb,L_s,M_s,alpha_v,kap,st,opt_vis=True):
+    """Computes the pebble accretion time for a given planetary mass at a given
+    semi-major axis. If the planets satisfies Racc>Hpeb we have 2D accretion
+    while we have 3D if Racc<Hpeb.
+    
+    mp: mass given in earth masses
+    a : semi-major axis in AU
+    mdot_gas: the gas accretion rate
+    mdot_peb: the pebble accretion rate
+    L_s: stellar luminosity
+    M_s: stellar mass
+    alpha_v: viscous alpha
+    kap: disk opacity coefficient
+    st: stokes number of the pebbles in the disk
+    opt_vis: boolean statement for the inclusion of a modulation factor"""
+    
+    hg = hgas(a,mdot_gas,L_s,M_s,alpha_v,kap,True)
+    hpeb = np.sqrt(alpha_v/(alpha_v+st))*hg
+    
+    Mp = mp/msuntome
+    
+    Rh      = a*(Mp/(3*M_s))**(1/3)
+    Racc    = Rh*st**(1/3)
+    acc_2d  = Racc>hpeb*a
+    acc_3d  = Racc<hpeb*a
+    
+    #We compute the pebble accretion efficiency
+    eta = eta_gas(a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+    
+    eps_2d = 3e-3*(mp/1e-2)**(2/3)*(st/1e-2)**(-1/3)*(eta[acc_2d]/3e-3)**(-1)
+    eps_3d = 4e-3*(mp/1e-2)*M_s**(-1)*(hpeb[acc_3d]/3e-3)**(-1)*(eta[acc_3d]/3e-3)**(-1)
+    
+    t         = np.zeros(len(a))
+    t[acc_2d] = mp/(eps_2d*mdot_peb)
+    t[acc_3d] = mp/(eps_3d*mdot_peb)
+    
+    return t#[yr]
+
+def tpeb_alt(mp,a,mdot_gas,mdot_peb,L_s,M_s,alpha_v,kap,st,opt_vis=True):
+    """Computes the pebble accretion time for a given planetary mass at a given
+    semi-major axis. If the planets satisfies Racc>Hpeb we have 2D accretion
+    while we have 3D if Racc<Hpeb.
+    
+    mp: mass given in earth masses
+    a : semi-major axis in AU
+    mdot_gas: the gas accretion rate
+    mdot_peb: the pebble accretion rate
+    L_s: stellar luminosity
+    M_s: stellar mass
+    alpha_v: viscous alpha
+    kap: disk opacity coefficient
+    st: stokes number of the pebbles in the disk
+    opt_vis: boolean statement for the inclusion of a modulation factor"""
+    
+    hg = hgas(a,mdot_gas,L_s,M_s,alpha_v,kap,True)
+    hpeb = np.sqrt(alpha_v/(alpha_v+st))*hg
+    
+    Mp = mp/msuntome
+    
+    Rh      = a*(Mp/(3*M_s))**(1/3)
+    Racc    = Rh*st**(1/3)
+    acc_2d  = Racc>hpeb*a
+    acc_3d  = Racc<hpeb*a
+    
+    #We compute the pebble accretion efficiency
+    eta = eta_gas(a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+    
+    fset = np.exp(-0.07*(eta/2.5e-3)**2*(mp/0.01)**(-2/3)*(st/0.1)**(2/3))
+    
+    t         = np.zeros(len(a))
+    t[acc_2d] = 9e-4*(mp/0.05)**(1/3)*(st/0.1)**(1/3)*(eta[acc_2d]/2.5e-3)*(mdot_peb/100)**(-1)
+    t[acc_3d] = 9e-4*(hpeb[acc_3d]/4.2e-3)*(eta[acc_3d]/2.5e-3)*(mdot_peb/100)**(-1)
+    
+    return t#[yr]

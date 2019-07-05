@@ -216,7 +216,7 @@ def check_cavity_planet():
             with open('big.dmp') as bigfile:
                 biglines = bigfile.readlines()
                 i = 6
-                while len(biglines)>6:
+                while (len(biglines)>6) & (len(old_names)>0):
                     if old_names[0] in biglines[i]:
                         del biglines[i:i+4]
                         del old_names[0]
@@ -232,3 +232,24 @@ def check_cavity_planet():
     else:
         call(['find',os.getcwd(),'-maxdepth','1','-type','f','-name','*.aei','-delete'])
         return False
+    
+def set_stokes_number(st):
+    
+        #The string we want to change
+    st_str = " pebble's stokes number =    "
+    
+    #Makes temporary file
+    fh, abs_path = mkstemp()
+    
+    with os.fdopen(fh,'w') as new_file:
+        with open('param.in') as old_file:
+            for line in old_file:
+                if st_str in line:
+                    rep_str = line
+                    new_str = st_str+'{:.0E}'.format(st)+'\n'
+                    new_file.write(line.replace(rep_str, new_str))
+                else:
+                    new_file.write(line)
+    #Remove original file and move new file
+    os.remove('param.in')
+    move(abs_path, 'param.in')

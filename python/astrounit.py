@@ -8,3 +8,4 @@ Omega = (G*Msun/AU**3)**0.5 # angular velocity at 1AU [s^-1]
 mu = 2.33 # mean molecular weight
 Rg = 8.31446e+7 # gas constant [erg/s/cm^2/K^4]
 sigma = 5.67e-5 # stefan Boltzman constant [erg/s/cm^2/K^4]
+msuntome = Msun/Mearth
