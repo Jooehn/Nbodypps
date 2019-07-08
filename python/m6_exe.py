@@ -145,7 +145,8 @@ while t < T:
     t += dt
 
 print('Creating .aei files')
-call(['./element'])
+if not all_in_cavity:
+    call(['./element'])
 #Finally, we create figures
 os.chdir(pydir)
 print('Creating figures')

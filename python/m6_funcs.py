@@ -158,10 +158,15 @@ def check_timestep():
                 else:
                     return False
             
-def get_names():
+def get_names(dmp=False):
     """Returns a list with the names of the current objects active in our simulation."""
     
-    with open('big.dmp','r') as bigfile:
+    if dmp:
+        file = 'big.dmp'
+    else:
+        file = 'big.in'
+    
+    with open(file,'r') as bigfile:
         biglines = bigfile.readlines()
         
     nameid = np.arange(6,len(biglines),4)
@@ -180,7 +185,7 @@ def check_cavity_planet():
     
     #We generate output files
     call(['./element'])
-    names = get_names()
+    names = get_names(True)
     N = len(names)
     in_cavity = np.full(N,False)
     
