@@ -481,7 +481,7 @@ subroutine mio_in (time,h0,tol,rcen,jcen,en,am,cefac,ndump,nfun,nbod,nbig,m,x,v,
      if ((j.eq.36).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(10) = 1
      if ((j.eq.37).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(11) = 1
      if ((j.eq.38).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(12) = 1
-     if ((j.eq.39).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(12) = 1
+     if ((j.eq.39).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(13) = 1
   end do
   h0 = abs(h0)
   tol = abs(tol)

@@ -13,6 +13,7 @@ import os
 from tempfile import mkstemp
 from subprocess import call
 from shutil import move
+from astrounit import rjtoau
 
 def setup_end_time(T,T_start=0):
     
@@ -203,7 +204,7 @@ def check_cavity_planet():
         cavity_ids  = np.where(in_cavity)[0]
         old_names = []
         for i in range(len(cavity_ids)):
-            print('We remove P{} from the integration\n'.format(cavity_ids[i]+1))
+            print('We remove P{} from the integration\n'.format(names[cavity_ids[i]]))
             old_names.append(names[cavity_ids[i]])
             names.remove(names[cavity_ids[i]])
         #We loop through each line in big.dmp and remove the information of the
@@ -224,8 +225,7 @@ def check_cavity_planet():
                         i += 4
             new_file.writelines(biglines)
         #Remove original file and move new file
-        for i in range(len(names)):
-            os.remove(names[i]+'.aei')    
+        call(['find',os.getcwd(),'-maxdepth','1','-type','f','-name','*.aei','-delete']) 
         os.remove('big.dmp')
         move(abs_path, 'big.dmp')    
         return False
@@ -253,3 +253,91 @@ def set_stokes_number(st):
     #Remove original file and move new file
     os.remove('param.in')
     move(abs_path, 'param.in')
+    
+def get_disk_params():
+    """Finds the disk parameters given in the param.in file and returns them
+    as an array"""
+    
+    parlist = []
+    with open('param.in','r') as paramfile:
+        parlines = paramfile.readlines()
+        for line in parlines[38:45]:
+            parlist.append(float(line.split()[-1]))
+        parlist.append(float(parlines[28].split()[-1]))
+        if parlines[46].split()[-1] in ['yes','Yes','y']:
+            parlist.append(True)
+        
+    return parlist
+ 
+def insert_planet_dmp(bigdata,name):
+    """Converts the asteroidal input information for our new planet to cartesian
+    coordinates and then writes it into our new big.dmp file."""
+
+    cwd = os.getcwd()
+    os.chdir('../conversion/')
+    
+    bad_ext = ['*.dmp','*.tmp','*.aei','*.clo','*.out']        
+    for j in bad_ext:
+        call(['find',os.getcwd(),'-maxdepth','1','-type','f','-name',j,'-delete'])
+    
+    initlist = [')O+_06 Big-body initial data  (WARNING: Do not delete this line!!)\n',\
+        ") Lines beginning with `)' are ignored.\n",\
+        ')---------------------------------------------------------------------\n',\
+        ' style (Cartesian, Asteroidal, Cometary) = Asteroidal\n',\
+        ' epoch (in days) = 0\n',\
+        ')---------------------------------------------------------------------\n']
+    
+    with open('big.in','w+') as bigfile:
+        
+        for i in initlist:
+            bigfile.write(i)
+        
+        bigfile.write(' {0:11}m={1:.17E} r={2:.0f}.d0 d={3:.2f} x={4:.2e}\n'.format(name,*bigdata[0:4]))
+        bigfile.write(' {0: .17E} {1: .17E} {2: .17E}\n'.format(*bigdata[4:7]))
+        bigfile.write(' {0: .17E} {1: .17E} {2: .17E}\n'.format(*bigdata[7:]))
+        bigfile.write('  0. 0. 0.\n')
+        
+    call(['./mercury'])
+    with open('big.dmp','r') as bigdmp:
+        bigdmplines = bigdmp.readlines()
+    os.chdir(cwd)
+    with open('big.dmp','a') as bigdmpnew:
+        for line in bigdmplines[6:]:
+            bigdmpnew.write(line)
+
+def insert_planet_embryo(mp,ap,emb_id):
+    """Inserts a new embryo into the integration at the ice-line"""
+    
+    ep = np.random.rayleigh(1e-2) #We draw eccentricities from a Rayleigh distr.
+    ip = 0.5*ep
+    rp = 1.0
+    dp = 1.5
+    xp = 1.5e-9
+    
+    #We insert our parameters into our data array
+    bigdata = np.array([mp,rp,dp,xp,ap,ep,ip,0,0,0])
+    
+    #Finally we generate the names and write it all into our big.in file
+    name = 'P{}'.format(emb_id)
+    
+    with open('big.in','a') as bigfile:
+        bigfile.write(' {0:11}m={1:.17E} r={2:.0f}.d0 d={3:.2f} x={4:.2e}\n'.format(name,*bigdata[0:4]))
+        bigfile.write(' {0: .17E} {1: .17E} {2: .17E}\n'.format(*bigdata[4:7]))
+        bigfile.write(' {0: .17E} {1: .17E} {2: .17E}\n'.format(*bigdata[7:]))
+        bigfile.write('  0. 0. 0.\n')
+        
+    #We then convert our aei coordinates to a cartesian frame using an external
+    #mercury run for 0.1 days and write it into our new big.dmp file
+    
+    insert_planet_dmp(bigdata,name)
+    
+def safronov_number(mp,ms,ap):
+    
+    #We use mass radius relation from Tremaine & Dong (2012)
+    mpj = mp*1e3 #In Jupiter masses
+    
+    rp = 10**(0.087+0.141*np.log10(mpj)-0.171*np.log10(mpj)**2)*rjtoau
+    
+    saf = np.sqrt(mp*ap/(ms*rp))
+    
+    return saf

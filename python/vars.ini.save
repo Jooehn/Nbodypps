@@ -5,19 +5,14 @@
 0.1,0.1
 
 # Minimum semi-major axis (AU)
-ice
+1
 
 # Separation between planets (AU)
-4
+5
 
 # Integration time (yr)
 2e6
 
-# Pebble stokes number
-1E-1
-
-# Input new embryos every 10^4 yr? [yes/no]
-yes
 
 # Source directory
-pa+mig4
+pebbletest

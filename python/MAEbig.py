@@ -12,7 +12,7 @@ import subprocess as sp
 import matplotlib.pyplot as plt
 from astrounit import *
 from diskmodel import rtrans,rsnow
-from m6_funcs import process_input
+from m6_funcs import process_input,get_names
 from plotset import *
 
 
@@ -66,9 +66,8 @@ except (IndexError,NameError):
 else:
     inputfile = sys.argv[1] #The vars.ini file
     vars_   = process_input(inputfile)
-    nbig    = int(vars_[0][0])
     st      = float(vars_[5][0])
-    source  = vars_[6][0].rstrip('\n')
+    source  = vars_[7][0].rstrip('\n')
 
 big = True # plot big planets
 generate_newdata = False
@@ -93,9 +92,9 @@ tmax = 2e+6 # year
 amin = .1# 1
 amax = 50 #8
 emin = 1e-8
-emax = 0.02
+emax = 0.1
 imin = 1e-8
-imax = 0.02
+imax = 0.1
 mmin = 1e-4#1e-11
 mmax = 100
 dmmin = 1e-16
@@ -118,14 +117,13 @@ workdir = cdir+'/../figure/'
 ## in source direction, generating the aei output file
 os.chdir(sourcedir)
 
+nbig = len(get_names())
+
 # change into figure direction
 os.chdir(workdir)
 
 plt.clf()  # clear image
 plt.close('all') # delete figure
-
-
-
 
 #########################################
 ###### Main rountine: make figures ######
@@ -165,7 +163,7 @@ for k in range(0,4):
             time_big, semi_big, ecc_big, inc_big, mass_big, fwater_big = \
             readdata(filename)
             if output =='mass_time':
-                axes.plot(time_big,mass_big*(Msun/Mearth),'b',linewidth=lw3)
+                axes.plot(time_big,mass_big*(Msun/Mearth),linewidth=lw3)
                 axes.set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axes.set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axes.set_ylim(mmin,mmax)

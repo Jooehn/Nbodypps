@@ -9,3 +9,4 @@ mu = 2.33 # mean molecular weight
 Rg = 8.31446e+7 # gas constant [erg/s/cm^2/K^4]
 sigma = 5.67e-5 # stefan Boltzman constant [erg/s/cm^2/K^4]
 msuntome = Msun/Mearth
+rjtoau = 1/2150
