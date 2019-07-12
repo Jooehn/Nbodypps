@@ -20,7 +20,7 @@ mdot_gas = 1e-7*M_s**2
 mdot_peb = 4e-4 #earthmasses/yr
 L_s      = M_s**2
 alpha_v  = 1e-3
-alpha_d  = 1e-3
+alpha_d  = 1e-4
 hg       = 0.03
 kap      = 1e-2
 G        = 4*np.pi**2
@@ -36,7 +36,7 @@ fig,ax = plt.subplots(1,2,figsize=(12,6),sharey=True)
 
 masslist = [0.1,1,10,30,50,100]
 
-clist = ['tab:blue','tab:purple','tab:orange','tab:green','tab:red','tab:cyan']
+clist = ['tab:blue','tab:purple','tab:orange','tab:green','tab:red','tab:brown']
 
 for m,c in zip(masslist,clist):
     
