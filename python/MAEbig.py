@@ -12,7 +12,7 @@ import subprocess as sp
 import matplotlib.pyplot as plt
 from astrounit import *
 from diskmodel import rtrans,rsnow
-from m6_funcs import process_input,get_names
+from m6_funcs import process_input,get_names,detect_merger
 from plotset import *
 
 
@@ -30,7 +30,7 @@ def readdata(filename):
         peri = data[:,4] # periastron 
         node = data[:,5] # ascending node
         mean = data[:,6] #mean anormal
-        mass = data[:,7]
+        mass = data[:,7]*msuntome
         masswater = data[:,14] # mass in water
         fwater = data[:,14]/data[:,7] #  water fraction
     else :
@@ -42,7 +42,7 @@ def readdata(filename):
         peri = data[4] # periastron 
         node = data[5] # ascending node
         mean = data[6] #mean anormal
-        mass = data[7]
+        mass = data[7]*msuntome
         masswater = data[14] # mass in water
         fwater = data[14]/data[7] #  water fraction
     # calculate the mass increase rate dmass
@@ -53,49 +53,31 @@ def readdata(filename):
 
 
 
-
-
-
 ##### defualt simulation infomation ####
 #If an input file is provided, we use the given inputs from it
 try:
     sys.argv[1]
 except (IndexError,NameError):
-    nbig    = int(vars_[0][0])
     source  = 'migtest'
 else:
     inputfile = sys.argv[1] #The vars.ini file
     vars_   = process_input(inputfile)
-    st      = float(vars_[5][0])
-    source  = vars_[7][0].rstrip('\n')
+    source  = vars_[8][0].rstrip('\n')
 
 big = True # plot big planets
 generate_newdata = False
 print('data file', source)
 
-#We calculate the position of rtrans and rsnow
-M_s = 1
-mdot_gas = 1e-7*M_s**2
-L_s = M_s**2
-alpha_v = 1e-3
-alpha_d = 1e-4
-kap = 1e-2
-opt_vis = True
-
-# calculate the transtion radius for two disk regions
-r_trans = rtrans(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
-r_snow = rsnow(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
-
 ##### defualt figure parameters ####
-tmin = 1e+2 # year
+tmin = 1e+4 # year
 tmax = 2e+6 # year
-amin = .1# 1
-amax = 50 #8
+amin = 1 # 1
+amax = 40 #8
 emin = 1e-7
 emax = 1
 imin = 1e-7
 imax = 1
-mmin = 1e-4#1e-11
+mmin = 1e-1#1e-11
 mmax = 100
 dmmin = 1e-16
 dmmax = 3e-10
@@ -117,13 +99,28 @@ workdir = cdir+'/../figure/'
 ## in source direction, generating the aei output file
 os.chdir(sourcedir)
 
+#We get the number of bodies
 nbig = len(get_names())
+#As well as the collision info from the simulation
+collinfo = detect_merger()
+#And finally the disk parameters used
+alpha_d, alpha_v, mdot_gas, L_s, _, _, st, kap, M_s, opt_vis = get_disk_params()
+# calculate the transtion radius for two disk regions
+r_trans = rtrans(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+r_snow = rsnow(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
 
 # change into figure direction
 os.chdir(workdir)
 
 plt.clf()  # clear image
 plt.close('all') # delete figure
+
+#### We get colour for the different planets
+ccycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+ncycle = int(np.floor(nbig/len(ccycle)))
+ccycle = np.concatenate([ccycle]*ncycle)
+if len(ccycle)>nbig:
+    ccycle = ccycle[:nbig]
 
 #########################################
 ###### Main rountine: make figures ######
@@ -143,13 +140,13 @@ for k in range(0,4):
         
         axes.axhline(r_trans,linewidth=lw2, color='c', linestyle='--')
         axes.axhline(r_snow,linewidth=lw2, color='m', linestyle='--')
-        axes.text(200,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
-        axes.text(200,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
+        axes.text(2e4,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
+        axes.text(2e4,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
         
         axlist[k].axhline(r_trans,linewidth=lw2, color='c', linestyle='--')
         axlist[k].axhline(r_snow,linewidth=lw2, color='m', linestyle='--')
-        axlist[k].text(200,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
-        axlist[k].text(200,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
+        axlist[k].text(2e4,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
+        axlist[k].text(2e4,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
         print (output)
     if k == 2: 
         output = 'ecc_time'
@@ -163,46 +160,50 @@ for k in range(0,4):
             time_big, semi_big, ecc_big, inc_big, mass_big, fwater_big = \
             readdata(filename)
             if output =='mass_time':
-                axes.plot(time_big,mass_big*(Msun/Mearth),linewidth=lw3)
+                axes.plot(time_big,mass_big,linewidth=lw3,color=ccycle[i-1],\
+                      zorder=1)
                 axes.set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axes.set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axes.set_ylim(mmin,mmax)
-#                axes.set_yticks([3.e-8,3.e-7,3e-6,3e-5,3e-4])
-#                axes.set_yticklabels(['$10^{-2}$','$10^{-1}$','$1$','$10$','$100$'])
                 #We also plot the data in a separate figure
-                axlist[k].plot(time_big,mass_big*(Msun/Mearth),linewidth=lw3)
+                axlist[k].plot(time_big,mass_big,linewidth=lw3,color=ccycle[i-1],\
+                      zorder=1)
                 axlist[k].set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axlist[k].set_ylim(mmin,mmax)
-#                axlist[k].set_yticks([3.e-8,3.e-7,3e-6,3e-5,3e-4])
-#                axlist[k].set_yticklabels(['$10^{-2}$','$10^{-1}$','$1$','$10$','$100$'])
+                if i in collinfo[0]:  
+                    idx = np.where(i==collinfo[0])[0]
+                    axes.plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=ccycle[i-1],\
+                          markeredgecolor='k',markeredgewidth=0.5,zorder=2)
+                    axlist[k].plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=ccycle[i-1],\
+                          markeredgecolor='k',markeredgewidth=0.5,zorder=2)
             if output =='semi_time':
-                axes.plot(time_big,semi_big,linewidth=lw3)
+                axes.plot(time_big,semi_big,linewidth=lw3,color=ccycle[i-1])
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axes.set_ylim(amin,amax)
                 
-                axlist[k].plot(time_big,semi_big,linewidth=lw3)
+                axlist[k].plot(time_big,semi_big,linewidth=lw3,color=ccycle[i-1])
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axlist[k].set_ylim(amin,amax)
             if output =='ecc_time':
-                axes.plot(time_big,ecc_big,linewidth=lw3)
+                axes.plot(time_big,ecc_big,linewidth=lw3,color=ccycle[i-1])
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Eccentricity}$')
                 axes.set_ylim(emin,emax)
                 
-                axlist[k].plot(time_big,ecc_big,linewidth=lw3)
+                axlist[k].plot(time_big,ecc_big,linewidth=lw3,color=ccycle[i-1])
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Eccentricity}$')
                 axlist[k].set_ylim(emin,emax)
             if output =='inc_time':
-                axes.plot(time_big,ecc_big,linewidth=lw3)
+                axes.plot(time_big,ecc_big,linewidth=lw3,color=ccycle[i-1])
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Inclination (radian)}$')
                 axes.set_ylim(imin,imax)
                 
-                axlist[k].plot(time_big,ecc_big,linewidth=lw3)
+                axlist[k].plot(time_big,ecc_big,linewidth=lw3,color=ccycle[i-1])
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Inclination (radian)}$')
                 axlist[k].set_ylim(imin,imax)

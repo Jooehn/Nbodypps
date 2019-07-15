@@ -325,7 +325,7 @@ def tpeb_alt(mp,a,mdot_gas,mdot_peb,L_s,M_s,alpha_v,kap,st,opt_vis=True):
     #We compute the pebble accretion efficiency
     eta = eta_gas(a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
     
-    fset = np.exp(-0.07*(eta/2.5e-3)**2*(mp/0.01)**(-2/3)*(st/0.1)**(2/3))
+#    fset = np.exp(-0.07*(eta/2.5e-3)**2*(mp/0.01)**(-2/3)*(st/0.1)**(2/3))
     
     t         = np.zeros(len(a))
     t[acc_2d] = 9e-4*(mp/0.05)**(1/3)*(st/0.1)**(1/3)*(eta[acc_2d]/2.5e-3)*(mdot_peb/100)**(-1)

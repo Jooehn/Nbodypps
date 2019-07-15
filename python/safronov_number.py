@@ -18,7 +18,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 msuntome = Msun/Mearth
 
 M_s      = 1
-mdot_gas = 1e-7*M_s**2
+mdot_gas = 1e-8*M_s**2
 mdot_peb = 4e-4 #earthmasses/yr
 L_s      = M_s**2
 alpha_v  = 1e-3
@@ -46,7 +46,7 @@ safvals = safronov_number(yy,M_s,xx)
 levels = np.linspace(0,safvals.max(),100)
 
 contax = ax.contourf(xx,yy*msuntome,safvals,levels = levels,cmap='plasma')
-cont1 = ax.contour(xx,yy*msuntome,safvals,levels = [1],colors=['k'],linestyles='--',
+cont1 = ax.contour(xx,yy*msuntome,safvals,levels = [1],colors=['w'],linestyles='--',
                    label=r'$\Theta = 1$')
 
 divider = make_axes_locatable(ax)
@@ -69,7 +69,7 @@ for l, s in zip(cont1.levels, c_label):
     fmt[l] = s
 
 ax.clabel(cont1, cont1.levels, inline=True, fmt=fmt, colors='w', fontsize=12,\
-          manual=False)
+          manual=True)
 
 ax.axvline(r_trans,linewidth=lw2, color='c', linestyle='--')
 ax.axvline(r_snow,linewidth=lw2, color='m', linestyle='--')

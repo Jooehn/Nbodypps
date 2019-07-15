@@ -10,10 +10,11 @@ Some functions that handles MERCURY input files
 
 import numpy as np
 import os
+import math
 from tempfile import mkstemp
 from subprocess import call
 from shutil import move
-from astrounit import rjtoau
+from astrounit import rjtoau,msuntome
 
 def setup_end_time(T,T_start=0):
     
@@ -259,14 +260,36 @@ def set_stokes_number(st):
     os.remove('param.in')
     move(abs_path, 'param.in')
     
+def set_turbulent_alpha(alpha):
+    
+        #The string we want to change
+    turb_str = " turbulent strength alphad =     "
+    
+    #Makes temporary file
+    fh, abs_path = mkstemp()
+    
+    with os.fdopen(fh,'w') as new_file:
+        with open('param.in') as old_file:
+            for line in old_file:
+                if turb_str in line:
+                    rep_str = line
+                    new_str = turb_str+'{:.17E}'.format(alpha)+'\n'
+                    new_file.write(line.replace(rep_str, new_str))
+                else:
+                    new_file.write(line)
+    #Remove original file and move new file
+    os.remove('param.in')
+    move(abs_path, 'param.in')
+    
 def get_disk_params():
     """Finds the disk parameters given in the param.in file and returns them
-    as an array"""
+    as an array in the following order: alpha_t, alpha_v, mdot_gas, L_s, R_disk,
+    mdot_peb, st, kappa, M_s, opt_vis."""
     
     parlist = []
     with open('param.in','r') as paramfile:
         parlines = paramfile.readlines()
-        for line in parlines[38:45]:
+        for line in parlines[37:45]:
             parlist.append(float(line.split()[-1]))
         parlist.append(float(parlines[28].split()[-1]))
         if parlines[46].split()[-1] in ['yes','Yes','y']:
@@ -346,3 +369,37 @@ def safronov_number(mp,ms,ap):
     saf = np.sqrt(mp*ap/(ms*rp))
     
     return saf
+
+def find_nearest(array,value):
+    idx = np.searchsorted(array, value, side="left")
+    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx-1]) < math.fabs(value - array[idx])):
+        return idx-1
+    else:
+        return idx
+
+def detect_merger():
+    """Finds which planet has grown through collisions with another embryo at
+    which time and mass."""
+    
+    coll = 'was hit by'
+    
+    plist = []
+    tlist = []
+    mlist = []
+    
+    with open('info.out','r') as infofile:
+        for line in infofile:
+            if coll in line:
+                cinfo = line.split()
+                plist.append(cinfo[0])
+                tlist.append(float(cinfo[6]))
+    
+    for i in range(len(plist)):
+        pdata = np.loadtxt(plist[i]+'.aei',skiprows=4)
+        t = pdata[:,0]
+        timeid = find_nearest(t,tlist[i])-1
+        mlist.append(pdata[timeid,7])
+    
+    plistn = [int(i.strip('P')) for i in plist]
+    
+    return np.asarray([plistn,np.asarray(mlist)*msuntome,np.asarray(tlist)/365.25])

@@ -45,8 +45,9 @@ else:
     astep       = float(vars_[3][0])
     T           = float(vars_[4][0])
     st          = float(vars_[5][0])
-    inp_emb_str = vars_[6][0].rstrip('\n')
-    source      = vars_[7][0].rstrip('\n')
+    alpha_d     = float(vars_[6][0])
+    inp_emb_str = vars_[7][0].rstrip('\n')
+    source      = vars_[8][0].rstrip('\n')
 ############### Setup ###############
 
 #We first swap into the source directory
@@ -113,6 +114,8 @@ dt  = 1e4
 setup_end_time(dt)
 #Furthermore, we set the input Stokes number
 set_stokes_number(st)
+#We also set the turbulent strength alpha
+set_turbulent_alpha(alpha_d)
 
 #We also remove old files
 bad_ext = ['*.dmp','*.tmp','*.aei','*.clo','*.out']        
