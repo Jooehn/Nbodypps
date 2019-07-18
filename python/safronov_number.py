@@ -18,12 +18,11 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 msuntome = Msun/Mearth
 
 M_s      = 1
-mdot_gas = 1e-8*M_s**2
+mdot_gas = 1e-7*M_s**2
 mdot_peb = 4e-4 #earthmasses/yr
 L_s      = M_s**2
 alpha_v  = 1e-3
 alpha_d  = 1e-3
-hg       = 0.03
 kap      = 1e-2
 G        = 4*np.pi**2
 opt_vis  = True

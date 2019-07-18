@@ -71,7 +71,7 @@ else:
 #First we generate the semi-major axis values given our separation and a min value
 #If amin is simply 'ice' or 'None', we set the initial position at the iceline
 if amin in ['ice','r_ice','None','none']:
-    alpha_v,mdot_gas,L_s,_,_,_,kap,M_s,opt_vis = get_disk_params()
+    _,alpha_v,mdot_gas,L_s,_,_,_,kap,M_s,opt_vis = get_disk_params()
     r_ice = rsnow(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
     avals = np.asarray([r_ice]*N)
 elif type(amin) in [float,int]:
@@ -153,5 +153,5 @@ if not all_in_cavity:
 #Finally, we create figures
 os.chdir(pydir)
 print('Creating figures')
-call(['python','MAEbig.py','vars.ini'])
+call(['python','MAEbig.py',source])
 print('The deed is done')

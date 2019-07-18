@@ -20,8 +20,7 @@ mdot_gas = 1e-7*M_s**2
 mdot_peb = 4e-4 #earthmasses/yr
 L_s      = M_s**2
 alpha_v  = 1e-3
-alpha_d  = 1e-4
-hg       = 0.03
+alpha_d  = 1e-3
 kap      = 1e-2
 G        = 4*np.pi**2
 opt_vis  = True
@@ -41,7 +40,7 @@ clist = ['tab:blue','tab:purple','tab:orange','tab:green','tab:red','tab:brown']
 for m,c in zip(masslist,clist):
     
     tmig1vals = tmig_1(m,a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis=True)
-    tpebvals  = tpeb(m,a,mdot_gas,mdot_peb,L_s,M_s,alpha_v,kap,st,opt_vis=True)
+    tpebvals  = tpeb(m,a,mdot_gas,mdot_peb,L_s,M_s,alpha_d,alpha_v,kap,st,opt_vis=True)
     ax[0].plot(a,tmig1vals,color=c,label=r'$'+'{}'.format(m)+'\ M_\oplus $')
     ax[1].plot(a,tpebvals,'-.',color=c,label=r'$'+'{}'.format(m)+'\ M_\oplus $')
 

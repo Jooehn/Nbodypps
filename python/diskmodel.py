@@ -258,7 +258,7 @@ def tmig_1(mp,a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis=True):
     
     return t #[yr]
 
-def tpeb(mp,a,mdot_gas,mdot_peb,L_s,M_s,alpha_v,kap,st,opt_vis=True):
+def tpeb(mp,a,mdot_gas,mdot_peb,L_s,M_s,alpha_d,alpha_v,kap,st,opt_vis=True):
     """Computes the pebble accretion time for a given planetary mass at a given
     semi-major axis. If the planets satisfies Racc>Hpeb we have 2D accretion
     while we have 3D if Racc<Hpeb.
@@ -274,8 +274,8 @@ def tpeb(mp,a,mdot_gas,mdot_peb,L_s,M_s,alpha_v,kap,st,opt_vis=True):
     st: stokes number of the pebbles in the disk
     opt_vis: boolean statement for the inclusion of a modulation factor"""
     
-    hg = hgas(a,mdot_gas,L_s,M_s,alpha_v,kap,True)
-    hpeb = np.sqrt(alpha_v/(alpha_v+st))*hg
+    hg = hgas(a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+    hpeb = np.sqrt(alpha_d/(alpha_d+st))*hg
     
     Mp = mp/msuntome
     
@@ -296,7 +296,7 @@ def tpeb(mp,a,mdot_gas,mdot_peb,L_s,M_s,alpha_v,kap,st,opt_vis=True):
     
     return t#[yr]
 
-def tpeb_alt(mp,a,mdot_gas,mdot_peb,L_s,M_s,alpha_v,kap,st,opt_vis=True):
+def tpeb_alt(mp,a,mdot_gas,mdot_peb,L_s,M_s,alpha_d,alpha_v,kap,st,opt_vis=True):
     """Computes the pebble accretion time for a given planetary mass at a given
     semi-major axis. If the planets satisfies Racc>Hpeb we have 2D accretion
     while we have 3D if Racc<Hpeb.
@@ -325,7 +325,7 @@ def tpeb_alt(mp,a,mdot_gas,mdot_peb,L_s,M_s,alpha_v,kap,st,opt_vis=True):
     #We compute the pebble accretion efficiency
     eta = eta_gas(a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
     
-#    fset = np.exp(-0.07*(eta/2.5e-3)**2*(mp/0.01)**(-2/3)*(st/0.1)**(2/3))
+#    fset = np.exp(-0.07*(eta/2.5e-3)**2*(mp/0.01)**(-2/3)*(st/0.1)**(2/3))s
     
     t         = np.zeros(len(a))
     t[acc_2d] = 9e-4*(mp/0.05)**(1/3)*(st/0.1)**(1/3)*(eta[acc_2d]/2.5e-3)*(mdot_peb/100)**(-1)

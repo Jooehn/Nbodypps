@@ -12,7 +12,7 @@ import subprocess as sp
 import matplotlib.pyplot as plt
 from astrounit import *
 from diskmodel import rtrans,rsnow
-from m6_funcs import process_input,get_names,detect_merger
+from m6_funcs import *
 from plotset import *
 
 
@@ -60,9 +60,9 @@ try:
 except (IndexError,NameError):
     source  = 'migtest'
 else:
-    inputfile = sys.argv[1] #The vars.ini file
-    vars_   = process_input(inputfile)
-    source  = vars_[8][0].rstrip('\n')
+    source = sys.argv[1] #The vars.ini file
+#    vars_   = process_input(inputfile)
+#    source  = vars_[8][0].rstrip('\n')
 
 big = True # plot big planets
 generate_newdata = False
