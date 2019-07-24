@@ -15,6 +15,7 @@ from tempfile import mkstemp
 from subprocess import call
 from shutil import move
 from astrounit import rjtoau,msuntome
+from diskmodel import iso_mass
 
 def setup_end_time(T,T_start=0):
     
@@ -403,3 +404,29 @@ def detect_merger():
     plistn = [int(i.strip('P')) for i in plist]
     
     return np.asarray([plistn,np.asarray(mlist)*msuntome,np.asarray(tlist)/365.25])
+
+def check_isomass(a,mp,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis):
+    """Goes through the semi-major axis values and mass values at every point in
+    time and compares the mass to the isolation mass at the corresponding a value.
+    If we see a sign change in the difference, we note the index where it occured
+    and return it."""
+    
+    m_iso = iso_mass(a,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)
+    
+    rdsign = np.sign(m_iso-mp)
+    
+    if np.any(rdsign==-1):
+        sz = rdsign == 0
+        while sz.any():
+            rdsign[sz] = np.roll(rdsign, 1)[sz]
+            sz = rdsign == 0
+        schange = ((np.roll(rdsign, 1) - rdsign) != 0).astype(int)
+        #We set the first element to zero due to the circular shift of
+        #numpy.roll
+        schange[0] = 0
+        #Finally we check where the array is equal to one and extract the
+        #corresponding index
+        scidx = np.where(schange)[0][0]
+        return scidx
+    else:
+        return None 

@@ -332,3 +332,32 @@ def tpeb_alt(mp,a,mdot_gas,mdot_peb,L_s,M_s,alpha_d,alpha_v,kap,st,opt_vis=True)
     t[acc_3d] = 9e-4*(hpeb[acc_3d]/4.2e-3)*(eta[acc_3d]/2.5e-3)*(mdot_peb/100)**(-1)
     
     return t#[yr]
+
+def gap_mass(a,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis):
+    """Computes the gap opening mass for a given radius in a PPD and returns it 
+    in units of Earth masses."""
+    
+    h_g = hgas(a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+    
+    M_gap = 30*(alpha_d/1e-3)**(0.5)*(h_g/0.05)**(2.5)*M_s
+    
+    return M_gap
+
+def iso_mass(a,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis):
+    """Computes the isolation mass for a given radius in a PPD and returns it 
+    in units of Earth masses."""
+    
+    M_iso = gap_mass(a,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)/2.3
+    
+    return M_iso
+
+
+def opt_mass(a,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis):
+    """Computes the optimal mass for outward migration at a given radius in a 
+    PPD and returns it in units of Earth masses."""
+    
+    h_g = hgas(a,mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+    
+    M_opt = 5*(alpha_d/1e-3)**(2/3)*(h_g/0.05)**(7/3)*M_s
+    
+    return M_opt

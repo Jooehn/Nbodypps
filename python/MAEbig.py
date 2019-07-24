@@ -58,7 +58,7 @@ def readdata(filename):
 try:
     sys.argv[1]
 except (IndexError,NameError):
-    source  = 'migtest'
+    source  = 'pa+mig6'
 else:
     source = sys.argv[1] #The vars.ini file
 #    vars_   = process_input(inputfile)
@@ -171,6 +171,8 @@ for k in range(0,4):
                 axlist[k].set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axlist[k].set_ylim(mmin,mmax)
+                #We check if the planet has undergone collisions and plot them
+                #if that's the case
                 if i in collinfo[0]:  
                     idx = np.where(i==collinfo[0])[0]
                     axes.plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=ccycle[i-1],\
@@ -178,15 +180,25 @@ for k in range(0,4):
                     axlist[k].plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=ccycle[i-1],\
                           markeredgecolor='k',markeredgewidth=0.5,zorder=2)
             if output =='semi_time':
-                axes.plot(time_big,semi_big,linewidth=lw3,color=ccycle[i-1])
+                axes.plot(time_big,semi_big,linewidth=lw3,color=ccycle[i-1],\
+                          zorder=1)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axes.set_ylim(amin,amax)
                 
-                axlist[k].plot(time_big,semi_big,linewidth=lw3,color=ccycle[i-1])
+                axlist[k].plot(time_big,semi_big,linewidth=lw3,color=ccycle[i-1],\
+                      zorder=1)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axlist[k].set_ylim(amin,amax)
+                #We check if the planet has reached isolation mass
+                im_idx = check_isomass(semi_big,mass_big,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)
+                #If it has we plot the corresponding time and semi-major axis
+                if im_idx is not None:
+                    axes.plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=ccycle[i-1],\
+                          markeredgecolor='k',markeredgewidth=0.5,zorder=2)
+                    axlist[k].plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=ccycle[i-1],\
+                          markeredgecolor='k',markeredgewidth=0.5,zorder=2)
             if output =='ecc_time':
                 axes.plot(time_big,ecc_big,linewidth=lw3,color=ccycle[i-1])
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')

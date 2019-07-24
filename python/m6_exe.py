@@ -73,7 +73,7 @@ else:
 if amin in ['ice','r_ice','None','none']:
     _,alpha_v,mdot_gas,L_s,_,_,_,kap,M_s,opt_vis = get_disk_params()
     r_ice = rsnow(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
-    avals = np.asarray([r_ice]*N)
+    avals = np.asarray([r_ice])
 elif type(amin) in [float,int]:
     amax  = amin + astep*N
     avals = np.arange(amin,amax,astep)
@@ -83,28 +83,39 @@ else:
 #We also generate the masses in the range provided
 pmass = np.linspace(mrange[0],mrange[1],N)
 
+#We set up the container for the initial data of the embryos
+
+if insert_embryo:
+    bigdata    = np.zeros((1,10))
+    bignames = ['P1']
+    pmass = np.array([mrange[0]])
+    #We draw eccentricities from a Rayleigh distr.
+    ep = np.random.rayleigh(1e-2,1) #We draw eccentricities from a Rayleigh distr.
+else:
+    bigdata    = np.zeros((N,10))
+    bignames = ['P{}'.format(i+1) for i in range(N)]
+    #We draw eccentricities from a Rayleigh distr.
+    ep = np.random.rayleigh(1e-2,N)
+    
 #Next we set up the physical properties and the phase of the planets and
 #store them in an array of size (N,10)
-mp = pmass*(Mearth/Msun)
-ep = np.random.rayleigh(1e-2,N) #We draw eccentricities from a Rayleigh distr.
 ip = 0.5*ep
 rp = 1.0
 dp = 1.5
 xp = 1.5e-9
+mp = pmass*(Mearth/Msun)
 
-props = np.array([0,rp,dp,xp,0,0,0,0,0,0])
-
-bigdata    = np.zeros((N,10))
-bigdata[:] = props
-
+props = np.array([0,rp,dp,xp,0,0,0,0,0,0])    
+    
+bigdata[:] = props    
+    
 #We also insert the semi-major axis values and masses
 bigdata[:,0] = mp
 bigdata[:,4] = avals
 bigdata[:,5] = ep
 bigdata[:,6] = ip
 
-#Finally we generate the names and write it all into our big.in file
-bignames = ['P{}'.format(i+1) for i in range(N)]
+#Finally we write it all into our big.in file
 
 big_input(bignames,bigdata,asteroidal=True)
 
@@ -128,7 +139,7 @@ t = 0
 i = 2
 while t < T:
     
-    if insert_embryo & (t>0) & (i<=20):
+    if insert_embryo & (t>0) & (i<=N):
         insert_planet_embryo(mp[0],avals[0],i)
         i += 1
     
