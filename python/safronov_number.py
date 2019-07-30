@@ -14,6 +14,7 @@ from labellines import labelLines
 from plotset import *
 from m6_funcs import safronov_number
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.colors import LogNorm
 
 msuntome = Msun/Mearth
 
@@ -28,32 +29,29 @@ G        = 4*np.pi**2
 opt_vis  = True
 st       = 1e-1
 
-a = np.linspace(0.1,100,50)
-
 r_trans = rtrans(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
 r_snow  = rsnow(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
 
 fig,ax = plt.subplots(figsize=(10,6))
 
-masses  = np.linspace(0.1,50,100)/msuntome
+masses  = np.linspace(0.1,50,100)
 avals   = np.linspace(0.1,100,100)
 
 xx, yy = np.meshgrid(avals,masses)
 
-safvals = safronov_number(yy,M_s,xx) 
+safvals = safronov_number(yy,M_s,xx)
 
-levels = np.linspace(0,safvals.max(),100)
+levels = np.logspace(np.log10(safvals.min()),1,100)
 
-contax = ax.contourf(xx,yy*msuntome,safvals,levels = levels,cmap='plasma')
-cont1 = ax.contour(xx,yy*msuntome,safvals,levels = [1],colors=['w'],linestyles='--',
-                   label=r'$\Theta = 1$')
+contax = ax.contourf(xx,yy,safvals,levels=levels,cmap='plasma',norm=LogNorm())
+cont1 = ax.contour(xx,yy,safvals,levels = [1],colors=['w'],linestyles='--',norm=LogNorm())
 
 divider = make_axes_locatable(ax)
 cax = divider.append_axes('right', size='5%', pad=0.1)
 
 cbar = plt.colorbar(contax,cax=cax)
 cbar.set_label(r'$\Theta$')
-cbar.set_ticks(list(range(7)))
+cbar.set_ticks([1e-2,1e-1,1e0,1e1])
 
 ax.set_xlabel('$a\ [\mathrm{AU}]$')
 ax.set_ylabel(r'$M_p\ [M_\oplus]$')
@@ -68,10 +66,10 @@ for l, s in zip(cont1.levels, c_label):
     fmt[l] = s
 
 ax.clabel(cont1, cont1.levels, inline=True, fmt=fmt, colors='w', fontsize=12,\
-          manual=True)
+          manual=False)
 
 ax.axvline(r_trans,linewidth=lw2, color='c', linestyle='--')
-ax.axvline(r_snow,linewidth=lw2, color='m', linestyle='--')
-ax.text(1.04*r_trans,.5,'$\\rm r_{\\rm trans}$', fontsize= fs2,color='c')
-ax.text(1.04*r_snow,.5,'$\\rm r_{\\rm ice}$', fontsize= fs2,color='m')
+ax.axvline(r_snow,linewidth=lw2, color='k', linestyle='--')
+ax.text(1.04*r_trans,.2,'$\\rm r_{\\rm trans}$', fontsize= fs2,color='c')
+ax.text(1.04*r_snow,.2,'$\\rm r_{\\rm ice}$', fontsize= fs2,color='k')
 add_date(fig)

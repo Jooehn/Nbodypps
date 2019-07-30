@@ -42,9 +42,9 @@ else:
     except ValueError:
         amin    = vars_[2][0].rstrip('\n')
         pass
-    astep       = float(vars_[3][0])
-    T           = float(vars_[4][0])
-    st          = float(vars_[5][0])
+    astep       = float(vars_[3][0]) #In R_Hill
+    T           = float(vars_[4][0]) #In yr
+    st          = float(vars_[5][0]) 
     alpha_d     = float(vars_[6][0])
     inp_emb_str = vars_[7][0].rstrip('\n')
     source      = vars_[8][0].rstrip('\n')
@@ -66,21 +66,13 @@ if inp_emb_str in ['yes','Yes','y']:
 else:
     insert_embryo = False
 
+#We get the general disk parameters as set up in the param.in file
+    
+_,alpha_v,mdot_gas,L_s,_,_,_,kap,M_s,opt_vis = get_disk_params()
+
 #We set up the big.in file with the number of planetary embryos we want
 
-#First we generate the semi-major axis values given our separation and a min value
-#If amin is simply 'ice' or 'None', we set the initial position at the iceline
-if amin in ['ice','r_ice','None','none']:
-    _,alpha_v,mdot_gas,L_s,_,_,_,kap,M_s,opt_vis = get_disk_params()
-    r_ice = rsnow(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
-    avals = np.asarray([r_ice])
-elif type(amin) in [float,int]:
-    amax  = amin + astep*N
-    avals = np.arange(amin,amax,astep)
-else:
-    raise ValueError('Not a valid input for a')
-
-#We also generate the masses in the range provided
+#First we generate the masses in the range provided
 pmass = np.linspace(mrange[0],mrange[1],N)
 
 #We set up the container for the initial data of the embryos
@@ -104,6 +96,23 @@ rp = 1.0
 dp = 1.5
 xp = 1.5e-9
 mp = pmass*(Mearth/Msun)
+
+#Next, we generate the semi-major axis values given our separation and a min value
+#If amin is simply 'ice' or 'None', we set the initial position at the iceline
+if amin in ['ice','r_ice','None','none']:
+    r_ice = rsnow(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+    avals = np.asarray([r_ice])
+elif type(amin) in [float,int]:
+    #We separate the embryos in terms of Hill radii
+    a     = amin
+    avals = [a]
+    for i in range(N-1):
+        R_hill = a*((mp[i]+mp[i+1])/(3*M_s))**(1/3)
+        a += astep*R_hill
+        avals.append(a)
+    avals = np.asarray(avals)
+else:
+    raise ValueError('Not a valid input for a')
 
 props = np.array([0,rp,dp,xp,0,0,0,0,0,0])    
     
