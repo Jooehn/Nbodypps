@@ -15,7 +15,7 @@ module mercury_globals
   implicit none
   
   integer :: nb_bodies_initial !< number of bodies when we start the simulation. Used for local variables in several modules. 
-  integer, dimension(13) :: opt = (/0,1,1,2,0,1,0,0,0,0,0,0,0/) !< Default options (can be overwritten later in the code) for mercury.\n
+  integer, dimension(14) :: opt = (/0,1,1,2,0,1,0,0,0,0,0,1,0,0/) !< Default options (can be overwritten later in the code) for mercury.\n
 !!\n  OPT(1) = close-encounter option (0=stop after an encounter, 1=continue)
 !!\n  OPT(2) = collision option (0=no collisions, 1=merge, 2=merge+fragment)
 !!\n  OPT(3) = time style (0=days 1=Greg.date 2/3=days/years w/respect to start)
@@ -27,8 +27,9 @@ module mercury_globals
 !!\n  OPT(9) = apply pebble accretion routine massgrowth (0=no, 1=yes)
 !!\n  OPT(10) = apply inner viscous heated disk region  (0=no, 1=yes)
 !!\n  OPT(11) = include the time evolution of accretion rate  (0=no, 1=yes)
-!!\n  OPT(12) = include disk migration (0=no, 1=yes)
+!!\n  OPT(12) = include disk migration (0=no, 1= typeI, 2= both typeI&II)
 !!\n  OPT(13) = include pebble isolation mass (0=no, 1=yes)
+!!\n  OPT(14) = include gas accretion (0=no, 1=yes)
   
   character(len=80), dimension(NMESS) :: mem !< Various messages and strings used by mercury
   integer, dimension(NMESS) :: lmem !< the length of each string of the 'mem' elements

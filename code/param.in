@@ -5,8 +5,8 @@
 )---------------------------------------------------------------------
   algorithm (MVS, BS, BS2, RADAU, HYBRID etc) =  BS
  start time (days) = 0
- stop time (days) = 365250000.000000
-  output interval (days) =   365250.000000000000     
+ stop time (days) = 36525000.000000
+  output interval (days) =   36525.000000000000     
   timestep (days) =    3.0000000000000000     
   accuracy parameter =   1E-012
 )---------------------------------------------------------------------
@@ -35,7 +35,7 @@
   Hybrid integrator changeover (Hill radii) =    3.0000000000000000     
   number of timesteps between data dumps =       650000
   number of timesteps between periodic effects =          100
- turbulent strength alphad =     1.0000000000000000E-003
+ turbulent strength alphad =     1.0000000000000000E-004
  disk viscous alpha =     1.0000000000000000E-003
  gas accretion rate (Msun/yr) =     1.0000000000000000E-007
  stellar luminosity (Lsun) =   1.000000000000000     
@@ -43,8 +43,9 @@
  pebble mass flux (Mearth/yr) =   2.0000000000000000E-004
  pebble's stokes number =    1E-001
  opacity coefficient =    1E-002
-allow planet mass increas by pebble accretion  = no
+allow planet mass increas by pebble accretion  = yes
 include the viscously heated region  = yes
 include the time evolution of accretion rate  = no
-include disk migration = yes 
+include disk migration = 2 
 include pebble isolation mass = no
+include gas accretion = yes

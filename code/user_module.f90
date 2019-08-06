@@ -83,7 +83,7 @@ subroutine mfo_user (time,jcen,n_bodies,n_big_bodies,mass, phyradius, position, 
     if (radii >= 0.2d0) then 
       if (planet <= n_big_bodies) then  ! for big bodies 
 ! calculate the acc from the migration 
-        call  type1 (time,mass(1),planet,mass(planet),position(:,planet),velocity(:,planet),acc_mig(:))
+        call  type12 (time,mass(1),planet,mass(planet),position(:,planet),velocity(:,planet),acc_mig(:))
         acceleration(1,planet) =  + acc_mig(1)
         acceleration(2,planet) =  + acc_mig(2)
         acceleration(3,planet) =  + acc_mig(3)
@@ -114,7 +114,7 @@ end subroutine mfo_user
 ! Use the eccentricity and inclination damping from Cresswell & Nelson 2008
 
 
-subroutine type1 (t,mstar,num,mpl,x,v,acc)
+subroutine type12 (t,mstar,num,mpl,x,v,acc)
 !  mpl    = planet mass (in solar masses * K2)
 !  mstar  = star mass (in solar masses * K2)
 !  x      = coordinates (x,y,z) with respect to the central body [AU]
@@ -122,7 +122,7 @@ subroutine type1 (t,mstar,num,mpl,x,v,acc)
 !  num    = current number of bodies
 !  t      = current epoch [days]
 
-  use physical_constant, only : PI, TWOPI, AU, MSUN, K2
+  use physical_constant, only : PI, TWOPI, AU, MSUN, K2, EARTH_MASS
   use mercury_globals, only : opt,alpha_t, kap, mdot_gas0, L_s, Rdisk0, alpha, tau_s
   use orbital_elements
 
@@ -137,8 +137,8 @@ subroutine type1 (t,mstar,num,mpl,x,v,acc)
   real(double_precision) :: asemi(3), aecc(3), ainc
   real(double_precision) :: taumig, tauecc, tauinc
   real(double_precision) :: pecc, hgas, etagas, rhogas
-  real(double_precision) :: rtrans, siggas_vis, siggas_irr,f1
-  real(double_precision) :: tauwave, rdisk, siggas, Omega
+  real(double_precision) :: rtrans, siggas_vis, siggas_irr,f1,f2,f_tot,fs
+  real(double_precision) :: tauwave, rdisk, siggas, Omega, m_gap, m_planet
   real(double_precision) :: r2, v2, rv, r
   real(double_precision) :: ecc, inc
   real(double_precision) ::peri,long,node,lmean
@@ -183,15 +183,37 @@ subroutine type1 (t,mstar,num,mpl,x,v,acc)
 !  *(0.07d0*(inc/hgas) + 0.085d0*(inc/hgas)**4 -0.08d0*(ecc/hgas)*(inc/hgas)**2 ))
 ! calculate the type I migration prefactor based on two-component disk structures 
   call type1_prefactor (mpl,mstar,rdisk,siggas_vis,siggas_irr,siggas,hgas, rtrans,f1)
-! migration  timescale f1>0, outward migration; f1<0, inward migration 
-  taumig = 2d0*tauwave/f1/hgas**2
 
+! only conside type I migration for all mass range 
+  if (opt(12) == 1 ) then 
+    f_tot = f1 
+  end if 
+
+! both conside type I & II 
+  if (opt(12) == 2 .or. opt(12) == 3) then      
+!  type II based on Kanagawa2018
+    if (opt(12) == 2)   f2 = -1.d0 
+!  type II  becomes infinite slow
+    if (opt(12) == 3)   f2 = -1.d-20 
+! gap opening mass 
+    m_gap = gap_opening(hgas,alpha_t,mstar) ! in earth mass 
+    m_planet = mpl/K2/EARTH_MASS ! planet mass in earth mass !!!! unsolved, think about stellar-mass dependence 
+
+    fs  = 1.d0/(1.d0  + (m_planet/m_gap)**4)
+    f_tot  = f1*fs + f2*(1-fs)
+    f_tot = f_tot/(1.d0 + (m_planet/m_gap)**2)
+  end if
+
+!  print*, opt(12),alpha_t, m_gap, mpl,mpl/K2,mpl/K2/EARTH_MASS, mstar,K2
+
+! migration  timescale f_tot>0, outward migration; f_tot<0, inward migration 
+  taumig = 2d0*tauwave/f_tot/hgas**2
 !  print*,'f1',t/365.25d0,f1,taumig/365.25
 !  print*,'check',mpl/mstar,mstar/(siggas*rdisk**2),hgas,6.28/Omega/365.25
   
-!  implement the acceralation terms due to tyep I torques 
+!  implement the acceralation terms due to disk torques 
   do  k = 1,3
-       if (opt(12) == 1) then  ! include migration 
+       if (opt(12) /= 0) then  ! include migration 
          asemi(k) = v(k)/taumig
        else
          asemi(k) = 0d0
@@ -204,7 +226,7 @@ subroutine type1 (t,mstar,num,mpl,x,v,acc)
   
 
   return
-end subroutine type1
+end subroutine type12
 
 
 
@@ -489,6 +511,19 @@ end subroutine type1_prefactor
 
 
 
+!###############################################
+! #### calculate the gap opening mass  ####
+!###############################################
+function gap_opening(hgas,alpha,mstar)  ! in Earth mass  
+!  hgas       =  gas disk aspect ratio 
+!  alpha      =  turbulent viscos alpha
+  use physical_constant, only : K2
+  implicit none
+  real(double_precision),intent(in) :: hgas, alpha, mstar
+  real(double_precision) :: gap_opening
+  gap_opening = 30d0*(hgas/5d-2)**2.5*(alpha/1d-3)**0.5*(mstar/K2)
+
+end function gap_opening  ! in Earth mass
 
 end module user_module
 

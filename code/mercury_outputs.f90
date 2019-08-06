@@ -436,7 +436,11 @@ subroutine mio_dump (time,h0,tol,jcen,rcen,en,am,cefac,ndump,nfun,nbod,nbig,m,x,
      else
         write (33,'(2a)') mem(200)(1:lmem(200)),mem(5)(1:lmem(5))
      end if
-
+     if (opt(14).eq.1) then
+        write (33,'(2a)') mem(201)(1:lmem(201)),mem(6)(1:lmem(6))
+     else
+        write (33,'(2a)') mem(201)(1:lmem(201)),mem(5)(1:lmem(5))
+     end if
 
      close (33)
      

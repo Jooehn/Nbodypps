@@ -62,7 +62,7 @@ subroutine pebbleaccretion (t,hstep,nbod,m,x,v,rphys,rho,m_x)
   real(double_precision) ::  siggas, hgas, etagas, rhogas
   real(double_precision) :: q, rp_to_a, mdot
   real(double_precision) :: rtemp(nbod), filter(nbod),temp, newprob(nbod), detm(nbod)
-  real(double_precision) :: rho_ice, rho_sil, rho_old, vol_old, vol_new_ice, vol_new_sil
+  real(double_precision) :: rho_ice, rho_sil
   real(double_precision) ::  m_iso, vol_tot 
   real(double_precision) :: rtrans, siggas_vis, siggas_irr
   integer :: ilist(nbod)
@@ -159,7 +159,7 @@ subroutine pebbleaccretion (t,hstep,nbod,m,x,v,rphys,rho,m_x)
 
 
     ! update the mass increase, consider the pebble isolation 
-    m_iso = pebble_iso(hgas,alpha,etagas,ts(i),m(1))  ! in earth mass 
+    m_iso = pebble_iso(hgas,alpha_t,etagas,ts(i),m(1))  ! in earth mass 
     m_iso = m_iso*EARTH_MASS*K2 !!!! unsolved, think about isolation mass around low-mass star
 
     if (m(i) > m_iso .and. opt(13)==1) then  ! mass growth quenched by pebble isolation
@@ -170,11 +170,18 @@ subroutine pebbleaccretion (t,hstep,nbod,m,x,v,rphys,rho,m_x)
       m_x(i) = m_x(i) + f_ice*detm(i)
     end if 
 
+
     !### calculate the new density based on pebble accretion ###
-    vol_tot = m_x(i)/rho_ice +(m(i)-m_x(i))/rho_sil
-    rho(i) = m(i) /vol_tot
+    !vol_tot = m_x(i)/rho_ice +(m(i)-m_x(i))/rho_sil
+    !rho(i) = m(i) /vol_tot
     ! ### update the radius due to mass increase ###
-    rphys(i)=(3d0*m(i)/(4d0*rho(i)*PI))**(1.d0/3.d0)
+    !rphys(i)=(3d0*m(i)/(4d0*rho(i)*PI))**(1.d0/3.d0)
+
+    !### calculate radius and density based on mass ###
+    ! infer gas giant's radius from the mass based on Lissauer2011 mass-radius relationship 
+    rphys(i) = (m(i)/K2/EARTH_MASS)**(1./2.06)*4.3d-5 ! AU
+    rho(i)= 3d0*m(i)/(4d0*PI*rphys(i)**3) ! in code unit 
+!   rho(i)/( AU * AU * AU * K2 / MSUN) ! in g/cm^3
 
     ! ###############################################################
     ! ###stop the integration if planet orbit is less than 0.1 AU ###
@@ -187,25 +194,160 @@ end subroutine pebbleaccretion
 
 
 
+
+
+subroutine gasaccretion (t,hstep,nbod,m,x,v,rphys,rho,m_x)
+!  t          = current epoch [days]
+!  hstep          = timestep [days]
+!  x      = coordinates (x,y,z) with respect to the central body [AU]
+!  v      = velocities (vx,vy,vz) with respect to the central body [AU/day]
+!  m          = planet mass (in solar masses * K2)
+!  nbod          = number of bodies 
+!  rphys          = planet radius [AU]
+!  rho          = planet density
+!  m_x          =  mass of element X in planet (in solar masses * K2)
+
+!  use types_numeriques
+!  use physical_constant, only : PI, TWOPI, MSUN, K2, EARTH_MASS, AU
+  use mercury_globals, only : opt,alpha_t, kap, mdot_gas0, alpha,tau_s
+  use user_module
+ 
+  implicit none
+
+  ! Input
+  integer, intent(in) :: nbod
+  real(double_precision),intent(in) :: t, hstep
+  real(double_precision),intent(inout) :: x(3,nbod), v(3,nbod)
+  real(double_precision),intent(inout) :: m(nbod)
+  real(double_precision),intent(inout) :: m_x(nbod)
+  real(double_precision),intent(inout) :: rphys(nbod)
+  real(double_precision),intent(inout) :: rho(nbod)
+  real(double_precision) :: ts(nbod) ! pebble's stokes number
+  real(double_precision) :: detm(nbod), dmdt(nbod)
+  real(double_precision) :: rdisk(nbod)
+  real(double_precision) ::  m_iso, m_planet,m_gap 
+  real(double_precision) :: rtrans, siggas_vis, siggas_irr
+  real(double_precision) ::  siggas, hgas, etagas, rhogas
+  real(double_precision) ::  dmdt_gas1, dmdt_gas2, dmdt_gas3
+  integer :: ilist(nbod)
+  integer i, k, j
+
+
+
+    !###############################################
+    !## update the mass increase by gas accretion ##
+    !###############################################
+  do i =2, nbod
+     rdisk(i) = (x(1, i)**2 + x(2, i)**2)**0.5d0
+    !##########################################
+    !### get disk infomation: etagas, hgas ####
+    !##########################################
+    call gasdisk (t,rdisk(i),x(3,i),m(1),alpha,kap,hgas,etagas,siggas,siggas_vis,siggas_irr,rhogas,rtrans)
+
+    ts(i) = tau_s
+    m_iso = pebble_iso(hgas,alpha_t,etagas,ts(i),m(1))  ! in earth mass 
+    m_iso = m_iso*EARTH_MASS*K2 !!!! unsolved, think about isolation mass around low-mass star
+    if (m(i) >=m_iso .and. opt(14)==1) then  ! mass growth by gas accretion 
+    ! #### mass increase by gas accretion #### 
+      m_planet = m(i)/(EARTH_MASS*K2) ! in Earth mass  
+      m_gap = gap_opening(hgas,alpha_t,m(1)) !gap-opening mass ! in Earth mass 
+      dmdt_gas1 =  dmdt_gas_KH(m_planet) ! in Mearth/yr 
+      dmdt_gas2 = dmdt_gas_Hill(m(i),m(1),m_gap,hgas,alpha,mdot_gas0) ! in Mearth/yr
+      dmdt_gas3 =  (mdot_gas0/EARTH_MASS)  ! in Mearth/yr 
+      dmdt(i) = min(dmdt_gas1, dmdt_gas2,dmdt_gas3) ! in Mearth/yr
+      dmdt(i)  = dmdt(i)*EARTH_MASS/365.25d0  ! solar mass/day
+      detm(i) = hstep*dmdt(i)*K2 ! mass increase during hstep
+      m(i) = m(i) + detm(i)
+
+
+    !### calculate radius and density based on mass ###
+    !### based on Lissauer2011 mass-radius relationship ### 
+      rphys(i) = (m(i)/K2/EARTH_MASS)**(1./2.06)*4.3d-5 ! AU
+      rho(i)= 3d0*m(i)/(4d0*PI*rphys(i)**3) ! in code unit 
+!     rho(i)/( AU * AU * AU * K2 / MSUN) ! in g/cm^3
+    
+    end if 
+
+  end do 
+
+
+
+end subroutine gasaccretion 
+
+
+
+
 !###############################################
 ! #### calculate the pebble isolation mass  ####
 !###############################################
-function pebble_iso(hgas,alpha,etagas,ts,mstar)  ! in Earth mass  
+!based on Bitsch+2018
+function pebble_iso(hgas,alpha_t,etagas,ts,mstar)  ! in Earth mass  
 !  hgas       =  gas disk aspect ratio 
-!  alpha      =  turbulent viscos alpha
+!  alpha_t      =  turbulent viscos alpha
 !  etagas     =  headwind prefactor 
 !  ts         =  stokes number 
   use physical_constant, only : K2
   implicit none
-  real(double_precision),intent(in) :: hgas, alpha, etagas,ts, mstar
+  real(double_precision),intent(in) :: hgas, alpha_t, etagas,ts, mstar
   real(double_precision) :: f_miso, pebble_iso
-  f_miso = (hgas/5d-2)**3*(0.34d0*(log10(alpha)/log10(1d-3))**4+ 0.66d0)!* &
-!     (1d0 - (2.5d0 +(-2d0*etagas/hgas**2) )/6d0)
-  pebble_iso = 25d0*f_miso !+ alpha/(2d0*ts)/(4.76d-3/f_miso)
-  pebble_iso = pebble_iso*(mstar/K2) ! consider the stellar mass dependence  
+!  f_miso = (hgas/5d-2)**3*(0.34d0*(log10(alpha_t)/log10(1d-3))**4+ 0.66d0)!* &     (1d0 - (2.5d0 +(-2d0*etagas/hgas**2) )/6d0)
+!  pebble_iso = 25d0*f_miso !+ alpha/(2d0*ts)/(4.76d-3/f_miso)
+!  pebble_iso = pebble_iso*(mstar/K2) ! consider the stellar mass dependence  
+  
+!  miso = mgap/2.3
+  pebble_iso = 30d0*(alpha_t/1d-3)**0.5*(hgas/5d-2)**2.5/2.3
+  pebble_iso = pebble_iso*(mstar/K2) ! consider the stellar mass dependence
 
 end function pebble_iso
 
+
+!###############################################
+! #### calculate the gap opening mass  ####
+!###############################################
+function gap_opening(hgas,alpha,mstar)  ! in Earth mass
+!  hgas       =  gas disk aspect ratio
+!  alpha      =  turbulent viscos alpha
+  use physical_constant, only : K2
+  implicit none
+  real(double_precision),intent(in) :: hgas, alpha, mstar
+  real(double_precision) :: gap_opening
+  gap_opening = 30d0*(hgas/5d-2)**2.5*(alpha/1d-3)**0.5*(mstar/K2)
+
+end function gap_opening  ! in Earth mass
+
+!#####################################################
+! #### calculate Kelvin-Helmholtz gas contraction ####
+!#####################################################
+! based on Ikoma2000
+function dmdt_gas_KH(m_planet)  ! in Earth mass/yr 
+!  m_planet       =  planet mass in earth mass   
+  implicit none
+  real(double_precision),intent(in) :: m_planet
+  real(double_precision) :: kap_env, dmdt_gas_KH
+  kap_env = 1.d0 ! 1cm^2g^-1
+  dmdt_gas_KH = 1d-5*(m_planet/1d+1)**4/kap_env
+end function dmdt_gas_KH
+
+
+!#####################################################
+!## calculate Hill sphere limited gas contraction ####
+!#####################################################
+! based on Tanigawa & Tanaka 2016, but see modified in Liu et al. 2019
+function dmdt_gas_Hill(mpl,mstar,mgap,hgas,alpha,mdot_gas0)  ! in Earth mass/yr 
+!  mpl       =   planet mass in code unit   
+!  mstar      =  stellar mass in code unit   
+!  mgap       =  gap opening planet mass in earth mass   
+!  hgas       =  gas disk aspect ratio 
+!  alpha      =  disk global angular momuntum transfer alpha
+  use physical_constant, only : PI, TWOPI, MSUN, K2, EARTH_MASS, AU
+  implicit none
+  real(double_precision),intent(in) :: mpl,mgap,hgas,alpha,mstar,mdot_gas0
+  real(double_precision) :: dmdt_gas_Hill,f_acc, fk, m_planet 
+  f_acc = 0.5d0
+  m_planet = mpl/(EARTH_MASS*K2) ! in earth mass 
+  fk = 1.0d0 + (m_planet/mgap)**2
+  dmdt_gas_Hill = f_acc/(3d0*PI)*hgas**(-2)*(mpl/mstar/3.d0)**(2./3)*(mdot_gas0/EARTH_MASS)/alpha/fk
+end function dmdt_gas_Hill
 
 
 !######################################################

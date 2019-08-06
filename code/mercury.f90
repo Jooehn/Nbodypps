@@ -15,7 +15,7 @@
 !2). mercury_global.f90: add opt(9)=0, define this opt=1 with pebble accretion; opt =0 W/O pebble accretion
 !2. new subrountines
 !1)  massgrowth.f90 for pebble accretion: pebble
-!2)  user_module.f90 for gas drag and type I migrarion: gasdrag,type1 
+!2)  user_module.f90 for gas drag and type I migrarion: gasdrag,type12 
 !3. remove some outputs from screen and file:
 !1)  mercury_output.f90: do not show first 5 line of *.aei
 !2)  mercury.f90: do not show begin and end of the intergration
@@ -36,7 +36,7 @@ program mercury
   use system_properties
   use mercury_outputs
   use utilities
-  use massgrowth, only: pebbleaccretion
+  use massgrowth, only: pebbleaccretion,gasaccretion 
   
   ! ALGORITHMS
   use algo_hybrid
@@ -419,7 +419,7 @@ subroutine mio_in (time,h0,tol,rcen,jcen,en,am,cefac,ndump,nfun,nbod,nbig,m,x,v,
   
   ! Read integration parameters
   lineno = 0
-  do j = 1, 39
+  do j = 1, 40
      do
         lineno = lineno + 1
         read (13,'(a150)') string
@@ -480,8 +480,10 @@ subroutine mio_in (time,h0,tol,rcen,jcen,en,am,cefac,ndump,nfun,nbod,nbig,m,x,v,
      if ((j.eq.35).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(9) = 1
      if ((j.eq.36).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(10) = 1
      if ((j.eq.37).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(11) = 1
-     if ((j.eq.38).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(12) = 1
+     if ((j.eq.38).and.((c1.eq.'o').or.(c1.eq.'1'))) opt(12) = 1
+     if ((j.eq.38).and.((c1.eq.'t').or.(c1.eq.'2'))) opt(12) = 2
      if ((j.eq.39).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(13) = 1
+     if ((j.eq.40).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(14) = 1
   end do
   h0 = abs(h0)
   tol = abs(tol)
@@ -1022,6 +1024,10 @@ subroutine mal_hvar (time,h0,tol,jcen,rcen,en,am,cefac,ndump,nfun,nbod,nbig,m,xh
      if (opt(9) == 1) then
         call pebbleaccretion(time,hdid,nbig,m,xh,vh,rphys,rho,m_x)
      end if
+     ! gas accretion for B-S method    
+     if (opt(14) == 1) then
+        call gasaccretion(time,hdid,nbig,m,xh,vh,rphys,rho,m_x)
+     end if
      ! Check if close encounters or collisions occurred
      nclo = 0
      call mce_stat (time,h,rcen,nbod,nbig,m,x0,v0,xh,vh,rce,rphys,nclo,iclo,jclo,dclo,tclo,ixvclo,jxvclo,nhit,ihit,jhit,chit,dhit,&
@@ -1302,6 +1308,10 @@ subroutine mal_hcon (time,h0,tol,jcen,rcen,en,am,cefac,ndump,nfun,nbod,nbig,m,xh
      ! pebble accretion for hybrid method    
      if (opt(9) == 1) then
         call pebbleaccretion(time,h0,nbod,m,x,v,rphys,rho,m_x)
+     end if
+     ! gas accretion for hybrid method    
+     if (opt(14) == 1) then
+        call gasaccretion(time,h0,nbod,m,x,v,rphys,rho,m_x)
      end if
 
         !  CLOSE  ENCOUNTERS
