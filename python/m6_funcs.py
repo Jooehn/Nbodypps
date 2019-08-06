@@ -14,7 +14,7 @@ import math
 from tempfile import mkstemp
 from subprocess import call
 from shutil import move
-from astrounit import rjtoau,msuntome
+from astrounit import *
 from diskmodel import iso_mass
 
 def setup_end_time(T,T_start=0):
@@ -295,6 +295,8 @@ def get_disk_params():
         parlist.append(float(parlines[28].split()[-1]))
         if parlines[46].split()[-1] in ['yes','Yes','y']:
             parlist.append(True)
+        else:
+            parlist.append(False)
         
     return parlist
  
@@ -361,11 +363,15 @@ def insert_planet_embryo(mp,ap,emb_id):
     insert_planet_dmp(bigdata,name)
     
 def safronov_number(mp,ms,ap):
-    
-    #We use mass radius relation from Tremaine & Dong (2012)
-    mpj = mp*1e3 #In Jupiter masses
-    
-    rp = 10**(0.087+0.141*np.log10(mpj)-0.171*np.log10(mpj)**2)*rjtoau
+    """Computes the Safronov number assuming a constant density of the planetary
+    embryos."""
+    #We assume a constant density
+    mp  = mp*Mearth
+    ms  = ms*Msun
+    ap  = ap*AU
+    rho = 1.5
+
+    rp  = (3*mp/(4*np.pi*rho))**(1/3)
     
     saf = np.sqrt(mp*ap/(ms*rp))
     

@@ -117,9 +117,10 @@ plt.close('all') # delete figure
 
 #### We get colour for the different planets
 ccycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
-ncycle = int(np.floor(nbig/len(ccycle)))
-ccycle = np.concatenate([ccycle]*ncycle)
-if len(ccycle)>nbig:
+if nbig > len(ccycle):
+    ncycle = int(np.floor(nbig/len(ccycle)))
+    ccycle = np.concatenate([ccycle]*ncycle)
+else:
     ccycle = ccycle[:nbig]
 
 #########################################
