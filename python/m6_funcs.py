@@ -432,7 +432,10 @@ def check_isomass(a,mp,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis):
         schange[0] = 0
         #Finally we check where the array is equal to one and extract the
         #corresponding index
-        scidx = np.where(schange)[0][0]
+        if np.any(schange):
+            scidx = np.where(schange)[0][0]
+        else:
+            scidx = 0
         return scidx
     else:
         return None 
