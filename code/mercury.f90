@@ -480,8 +480,10 @@ subroutine mio_in (time,h0,tol,rcen,jcen,en,am,cefac,ndump,nfun,nbod,nbig,m,x,v,
      if ((j.eq.35).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(9) = 1
      if ((j.eq.36).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(10) = 1
      if ((j.eq.37).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(11) = 1
+     if ((j.eq.38).and.((c1.eq.'o').or.(c1.eq.'0'))) opt(12) = 0
      if ((j.eq.38).and.((c1.eq.'o').or.(c1.eq.'1'))) opt(12) = 1
      if ((j.eq.38).and.((c1.eq.'t').or.(c1.eq.'2'))) opt(12) = 2
+     if ((j.eq.38).and.((c1.eq.'t').or.(c1.eq.'3'))) opt(12) = 3
      if ((j.eq.39).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(13) = 1
      if ((j.eq.40).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(14) = 1
   end do

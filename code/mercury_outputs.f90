@@ -426,11 +426,20 @@ subroutine mio_dump (time,h0,tol,jcen,rcen,en,am,cefac,ndump,nfun,nbod,nbig,m,x,
      else
         write (33,'(2a)') mem(198)(1:lmem(198)),mem(5)(1:lmem(5))
      end if
-     if (opt(12).eq.1) then
-        write (33,'(2a)') mem(199)(1:lmem(199)),mem(6)(1:lmem(6))
-     else
-        write (33,'(2a)') mem(199)(1:lmem(199)),mem(5)(1:lmem(5))
-     end if
+     !if (opt(12).eq.1) then
+        !write (33,'(2a)') mem(199)(1:lmem(199)),mem(6)(1:lmem(6))
+     !else
+        !write (33,'(2a)') mem(199)(1:lmem(199)),mem(5)(1:lmem(5))
+     !end if
+     if (opt(12).eq.0) then
+        write (33,'(2a)') mem(199)(1:lmem(199)),'0'
+     else if (opt(12).eq.1) then 
+        write (33,'(2a)') mem(199)(1:lmem(199)),'1'
+     else if (opt(12).eq.2) then 
+        write (33,'(2a)') mem(199)(1:lmem(199)),'2'
+     else 
+        write (33,'(2a)') mem(199)(1:lmem(199)),'3'
+     end if 
      if (opt(13).eq.1) then
         write (33,'(2a)') mem(200)(1:lmem(200)),mem(6)(1:lmem(6))
      else

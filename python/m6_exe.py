@@ -12,7 +12,7 @@ from subprocess import call
 from astrounit import *
 from sys import argv
 from m6_funcs import *
-from diskmodel import rsnow
+from diskmodel import rsnow,rtrans
 
 ############### Input ###############
 
@@ -127,6 +127,12 @@ bigdata[:,6] = ip
 #Finally we write it all into our big.in file
 
 big_input(bignames,bigdata,asteroidal=True)
+
+#Uncomment the following lines to allow for input of a specific planet in big.in
+
+#mass_p = 100*(Mearth/Msun)
+#semi_p = rtrans(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
+#insert_planet_embryo(mass_p,semi_p,N+1)
 
 #We set up the end time of the run which is divided into shorter integrations of 
 #length dt
