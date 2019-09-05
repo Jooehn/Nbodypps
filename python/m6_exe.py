@@ -24,7 +24,7 @@ try:
 except (IndexError,NameError):
 
     N       = 1   #Number of planet embryos
-    amin    = 'ice'  #Min semi-major axis val
+    amid    = 'ice'  #Min semi-major axis val
     astep   = 5   #Step in between planets
     mrange  = np.array([0.01,0.01])  #Planetary mass in earth masses
     
@@ -38,9 +38,9 @@ else:
     N           = int(vars_[0][0])
     mrange      = np.array(vars_[1][0].split(',')[:],dtype=float)
     try:
-        amin    = float(vars_[2][0])
+        amid    = float(vars_[2][0])
     except ValueError:
-        amin    = vars_[2][0].rstrip('\n')
+        amid    = vars_[2][0].rstrip('\n')
         pass
     astep       = float(vars_[3][0]) #In R_Hill
     T           = float(vars_[4][0]) #In yr
@@ -98,19 +98,34 @@ xp = 1.5e-9
 mp = pmass*(Mearth/Msun)
 
 #Next, we generate the semi-major axis values given our separation and a min value
-#If amin is simply 'ice' or 'None', we set the initial position at the iceline
-if amin in ['ice','r_ice','None','none']:
+#If amid is simply 'ice' or 'None', we set the initial position at the iceline
+if amid in ['ice','r_ice','None','none']:
     r_ice = rsnow(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
     avals = np.asarray([r_ice])
-elif type(amin) in [float,int]:
+elif type(amid) in [float,int]:
     #We separate the embryos in terms of Hill radii
-    a     = amin
-    avals = [a]
-    for i in range(N-1):
-        R_hill = a*((mp[i]+mp[i+1])/(3*M_s))**(1/3)
-        a += astep*R_hill
-        avals.append(a)
-    avals = np.asarray(avals)
+    a_low     = amid
+    a_upp     = amid
+    avals_low = []
+    avals_upp = []
+    
+    N_half = int(0.5*N)
+    N_low = list(range(0,N_half))
+    N_low.reverse()
+    N_upp = list(range(N_half,N))
+    
+    for i in N_low[:-1]:
+        R_hill_l = a_low*((mp[i]+mp[i-1])/(3*M_s))**(1/3)
+        a_low   -= astep*R_hill_l
+        avals_low.append(a_low)
+        
+    for i in N_upp[:-1]:
+        R_hill_u = a_upp*((mp[i]+mp[i+1])/(3*M_s))**(1/3)
+        a_upp   += astep*R_hill_u
+        avals_upp.append(a_upp)
+    
+    avals_low.sort()    
+    avals = np.concatenate([avals_low,[amid],avals_upp])
 else:
     raise ValueError('Not a valid input for a')
 
