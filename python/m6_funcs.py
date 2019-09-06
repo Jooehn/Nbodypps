@@ -371,7 +371,8 @@ def safronov_number(mp,ms,ap):
     ap  = ap*AU
     rho = 1.5
 
-    rp  = (3*mp/(4*np.pi*rho))**(1/3)
+#    rp  = (3*mp/(4*np.pi*rho))**(1/3)
+    rp  = mp**(1/2.06)*retoau
     
     saf = np.sqrt(mp*ap/(ms*rp))
     
@@ -420,6 +421,35 @@ def check_isomass(a,mp,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis):
     m_iso = iso_mass(a,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)
     
     rdsign = np.sign(m_iso-mp)
+    
+    if np.any(rdsign==-1):
+        sz = rdsign == 0
+        while sz.any():
+            rdsign[sz] = np.roll(rdsign, 1)[sz]
+            sz = rdsign == 0
+        schange = ((np.roll(rdsign, 1) - rdsign) != 0).astype(int)
+        #We set the first element to zero due to the circular shift of
+        #numpy.roll
+        schange[0] = 0
+        #Finally we check where the array is equal to one and extract the
+        #corresponding index
+        if np.any(schange):
+            scidx = np.where(schange)[0][0]
+        else:
+            scidx = 0
+        return scidx
+    else:
+        return None 
+    
+def check_gapmass(a,mp,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis):
+    """Goes through the semi-major axis values and mass values at every point in
+    time and compares the mass to the gas accretion mass at the corresponding a value.
+    If we see a sign change in the difference, we note the index where it occured
+    and return it."""
+    
+    m_gap = gap_mass(a,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)
+    
+    rdsign = np.sign(m_gap-mp)
     
     if np.any(rdsign==-1):
         sz = rdsign == 0

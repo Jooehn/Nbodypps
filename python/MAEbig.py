@@ -69,10 +69,10 @@ generate_newdata = False
 print('data file', source)
 
 ##### defualt figure parameters ####
-tmin = 1e+4 # year
+tmin = 1e+5 # year
 tmax = 2e+6 # year
-amin = 1 # 1
-amax = 40 #8
+amin = .1 # 1
+amax = 100 #8
 emin = 1e-7
 emax = 1
 imin = 1e-7
@@ -118,7 +118,7 @@ plt.close('all') # delete figure
 #### We get colour for the different planets
 ccycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 if nbig > len(ccycle):
-    ncycle = int(np.floor(nbig/len(ccycle)))
+    ncycle = int(np.ceil(nbig/len(ccycle)))
     ccycle = np.concatenate([ccycle]*ncycle)
 else:
     ccycle = ccycle[:nbig]
@@ -161,13 +161,21 @@ for k in range(0,4):
             time_big, semi_big, ecc_big, inc_big, mass_big, fwater_big = \
             readdata(filename)
             if output =='mass_time':
-                axes.plot(time_big,mass_big,linewidth=lw3,color=ccycle[i-1],\
+                #We check if the planet reaches its gap opening mass at any point
+                #of its evolution. If so, we increase the thickness of its
+                #plot line width
+                gm_idx = check_gapmass(semi_big,mass_big,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)
+                if gm_idx is None:
+                    lw = lw4
+                else:
+                    lw = lw5
+                axes.plot(time_big,mass_big,linewidth=lw,color=ccycle[i-1],\
                       zorder=1)
                 axes.set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axes.set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axes.set_ylim(mmin,mmax)
                 #We also plot the data in a separate figure
-                axlist[k].plot(time_big,mass_big,linewidth=lw3,color=ccycle[i-1],\
+                axlist[k].plot(time_big,mass_big,linewidth=lw,color=ccycle[i-1],\
                       zorder=1)
                 axlist[k].set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
@@ -181,13 +189,21 @@ for k in range(0,4):
                     axlist[k].plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=ccycle[i-1],\
                           markeredgecolor='k',markeredgewidth=0.5,zorder=2)
             if output =='semi_time':
-                axes.plot(time_big,semi_big,linewidth=lw3,color=ccycle[i-1],\
+                #We check if the planet reaches its gap opening mass at any point
+                #of its evolution. If so, we increase the thickness of its
+                #plot line width
+                gm_idx = check_gapmass(semi_big,mass_big,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)
+                if gm_idx is None:
+                    lw = lw4
+                else:
+                    lw = lw3
+                axes.plot(time_big,semi_big,linewidth=lw,color=ccycle[i-1],\
                           zorder=1)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axes.set_ylim(amin,amax)
                 
-                axlist[k].plot(time_big,semi_big,linewidth=lw3,color=ccycle[i-1],\
+                axlist[k].plot(time_big,semi_big,linewidth=lw,color=ccycle[i-1],\
                       zorder=1)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
@@ -211,24 +227,24 @@ for k in range(0,4):
                 axlist[k].set_ylabel('$ {\\rm Eccentricity}$')
                 axlist[k].set_ylim(emin,emax)
             if output =='inc_time':
-                axes.plot(time_big,ecc_big,linewidth=lw3,color=ccycle[i-1])
+                axes.plot(time_big,inc_big,linewidth=lw3,color=ccycle[i-1])
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Inclination (radian)}$')
                 axes.set_ylim(imin,imax)
                 
-                axlist[k].plot(time_big,ecc_big,linewidth=lw3,color=ccycle[i-1])
+                axlist[k].plot(time_big,inc_big,linewidth=lw3,color=ccycle[i-1])
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Inclination (radian)}$')
                 axlist[k].set_ylim(imin,imax)
             
         axes.set_xlim(tmin,tmax)
-        axes.semilogx()
-        axes.semilogy()
+#        axes.semilogx()
+#        axes.semilogy()
 #        axes.set_xticks([1e+2,1e+3,1e+4,1e+5,1e+6],['$10^{2}$','$10^{3}$','$10^{4}$','$10^{5}$','$10^{6}$'])
         
         axlist[k].set_xlim(tmin,tmax)
-        axlist[k].semilogx()
-        axlist[k].semilogy()
+#        axlist[k].semilogx()
+#        axlist[k].semilogy()
 #        axlist[k].set_xticks([1e+2,1e+3,1e+4,1e+5,1e+6],['$10^{2}$','$10^{3}$','$10^{4}$','$10^{5}$','$10^{6}$'])
     
     fig.suptitle(r'$\tau_s = '+'{:.2E}'.format(st)+'$')

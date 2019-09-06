@@ -110,7 +110,7 @@ elif type(amid) in [float,int]:
     avals_upp = []
     
     N_half = int(0.5*N)
-    N_low = list(range(0,N_half))
+    N_low = list(range(0,N_half+1))
     N_low.reverse()
     N_upp = list(range(N_half,N))
     

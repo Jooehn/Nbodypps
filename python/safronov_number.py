@@ -66,7 +66,7 @@ for l, s in zip(cont1.levels, c_label):
     fmt[l] = s
 
 ax.clabel(cont1, cont1.levels, inline=True, fmt=fmt, colors='w', fontsize=12,\
-          manual=False)
+          manual=True)
 
 ax.axvline(r_trans,linewidth=lw2, color='c', linestyle='--')
 ax.axvline(r_snow,linewidth=lw2, color='k', linestyle='--')
