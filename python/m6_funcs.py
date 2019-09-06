@@ -15,7 +15,7 @@ from tempfile import mkstemp
 from subprocess import call
 from shutil import move
 from astrounit import *
-from diskmodel import iso_mass
+from diskmodel import iso_mass,gap_mass
 
 def setup_end_time(T,T_start=0):
     

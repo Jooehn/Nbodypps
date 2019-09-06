@@ -194,9 +194,9 @@ for k in range(0,4):
                 #plot line width
                 gm_idx = check_gapmass(semi_big,mass_big,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)
                 if gm_idx is None:
-                    lw = lw4
-                else:
                     lw = lw3
+                else:
+                    lw = lw4
                 axes.plot(time_big,semi_big,linewidth=lw,color=ccycle[i-1],\
                           zorder=1)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
@@ -238,13 +238,13 @@ for k in range(0,4):
                 axlist[k].set_ylim(imin,imax)
             
         axes.set_xlim(tmin,tmax)
-#        axes.semilogx()
-#        axes.semilogy()
+        axes.semilogx()
+        axes.semilogy()
 #        axes.set_xticks([1e+2,1e+3,1e+4,1e+5,1e+6],['$10^{2}$','$10^{3}$','$10^{4}$','$10^{5}$','$10^{6}$'])
         
         axlist[k].set_xlim(tmin,tmax)
-#        axlist[k].semilogx()
-#        axlist[k].semilogy()
+        axlist[k].semilogx()
+        axlist[k].semilogy()
 #        axlist[k].set_xticks([1e+2,1e+3,1e+4,1e+5,1e+6],['$10^{2}$','$10^{3}$','$10^{4}$','$10^{5}$','$10^{6}$'])
     
     fig.suptitle(r'$\tau_s = '+'{:.2E}'.format(st)+'$')
