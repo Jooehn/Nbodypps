@@ -293,7 +293,7 @@ def get_disk_params():
         for line in parlines[37:45]:
             parlist.append(float(line.split()[-1]))
         parlist.append(float(parlines[28].split()[-1]))
-        if parlines[46].split()[-1] in ['yes','Yes','y']:
+        if parlines[48].split()[-1] in ['yes','Yes','y']:
             parlist.append(True)
         else:
             parlist.append(False)

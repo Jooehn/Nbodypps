@@ -71,6 +71,8 @@ module mercury_globals
   real(double_precision) :: Mdot_peb !< disk pebble mass flux (Mearth/yr)
   real(double_precision) :: tau_s !< pebble stokes number
   real(double_precision) :: kap !< opacity coefficient
+  real(double_precision) :: t0_dep !< onset time of disk dispersal [Myr] 
+  real(double_precision) :: tau_dep !<  disk dispersal  timescale [Myr]
   
   
 end module mercury_globals

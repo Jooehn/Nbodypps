@@ -123,7 +123,7 @@ subroutine type12 (t,mstar,num,mpl,x,v,acc)
 !  t      = current epoch [days]
 
   use physical_constant, only : PI, TWOPI, AU, MSUN, K2, EARTH_MASS
-  use mercury_globals, only : opt,alpha_t, kap, mdot_gas0, L_s, Rdisk0, alpha, tau_s
+  use mercury_globals, only : opt,alpha_t, kap, mdot_gas0, L_s, Rdisk0, alpha, tau_s,t0_dep,tau_dep
   use orbital_elements
 
   implicit none
@@ -138,7 +138,7 @@ subroutine type12 (t,mstar,num,mpl,x,v,acc)
   real(double_precision) :: taumig, tauecc, tauinc
   real(double_precision) :: pecc, hgas, etagas, rhogas
   real(double_precision) :: rtrans, siggas_vis, siggas_irr,f1,f2,f_tot,fs
-  real(double_precision) :: tauwave, rdisk, siggas, Omega, m_gap, m_planet
+  real(double_precision) :: tauwave, rdisk, siggas, Omega, m_gap, m_planet,delta_m
   real(double_precision) :: r2, v2, rv, r
   real(double_precision) :: ecc, inc
   real(double_precision) ::peri,long,node,lmean
@@ -194,14 +194,20 @@ subroutine type12 (t,mstar,num,mpl,x,v,acc)
 !  type II based on Kanagawa2018
     if (opt(12) == 2)   f2 = -1.d0 
 !  type II  becomes infinite slow
-    if (opt(12) == 3)   f2 = -1.d-20 
+    if (opt(12) == 3) f2 = -1d-10
 ! gap opening mass 
     m_gap = gap_opening(hgas,alpha_t,mstar) ! in earth mass 
     m_planet = mpl/K2/EARTH_MASS ! planet mass in earth mass !!!! unsolved, think about stellar-mass dependence 
-
-    fs  = 1.d0/(1.d0  + (m_planet/m_gap)**4)
-    f_tot  = f1*fs + f2*(1-fs)
-    f_tot = f_tot/(1.d0 + (m_planet/m_gap)**2)
+    if (m_planet <m_gap) then 
+      f_tot = f1
+    else
+    !fs  = 1.d0/(1.d0  + (m_planet/m_gap)**4)
+    !f_tot  = f1*fs + f2*(1-fs)
+    !f_tot = f_tot/(1.d0 + (m_planet/m_gap)**2)
+      delta_m = m_gap/5.d0
+      fs = exp(-(m_planet-m_gap)/delta_m)
+      f_tot  = f1*fs + f2*(1.d0-fs)/(m_planet/m_gap)**2
+    end if
   end if
 
 !  print*, opt(12),alpha_t, m_gap, mpl,mpl/K2,mpl/K2/EARTH_MASS, mstar,K2
@@ -248,7 +254,7 @@ subroutine gasdrag (t,mstar,num, mpl,rphypl, x,v,acc)
 !  t          = current epoch [days]
 
   use physical_constant, only : PI, AU, MSUN, K2
-  use mercury_globals, only : alpha_t, kap, mdot_gas0, L_s, Rdisk0, alpha
+  use mercury_globals, only : alpha_t, kap, mdot_gas0, L_s, Rdisk0, alpha, t0_dep,tau_dep
   implicit none
 
   
@@ -331,6 +337,8 @@ subroutine gasdisk (t,r,z,mstar,alpha,kap,hgas,etagas,siggas,siggas_vis,siggas_i
 !  t                     = current epoch [days]
 !  r                     = disk radius [AU]
 !  z                     = vertical distance [AU]
+!  t0_dep                = onset time of disk disposal [Myr]
+!  tau_dep                =  disk disposal timescale [Myr]
 !  mdot_gas              = gas accretion rate at t [Msun/yr]
 !  siggas                = gas surface desity at t  [K*MSUN/AU^2]
 !  siggas_vis/irr        = gas surface desity at viscous/irradiation zone  [K*MSUN/AU^2]
@@ -341,7 +349,7 @@ subroutine gasdisk (t,r,z,mstar,alpha,kap,hgas,etagas,siggas,siggas_vis,siggas_i
 !  rtrans                = transition radius between two regions  
 
   use physical_constant, only : PI, TWOPI, AU, MSUN, K2
-  use mercury_globals, only : opt, L_s,mdot_gas0 
+  use mercury_globals, only : opt, L_s,mdot_gas0, t0_dep,tau_dep 
 
   implicit none
   real(double_precision), intent(in) :: t, r, z, mstar,alpha,kap
@@ -351,7 +359,7 @@ subroutine gasdisk (t,r,z,mstar,alpha,kap,hgas,etagas,siggas,siggas_vis,siggas_i
   real(double_precision) :: siggas0_irr,  hgas0_irr, hgas_irr, T0_irr, T_irr
   real(double_precision) :: fs, Temp,  rhogas_mid, etagas0
   real(double_precision) :: Omega,v_0,ts_0,mdot_gas
-  real(double_precision) :: M_s
+  real(double_precision) :: M_s, t0, td
 
 !!! this will change in future !!!
   M_s = 1.0
@@ -367,7 +375,10 @@ subroutine gasdisk (t,r,z,mstar,alpha,kap,hgas,etagas,siggas,siggas_vis,siggas_i
   !####### consider gas accretion rate time-dependent #####
   !########################################################
   if ( opt(11) ==1 ) then ! time evolution of mdot_gas
-    mdot_gas = mdot_gas0*(t/ts_0 +1)**(-(2.5+p)/(2+p))
+    !mdot_gas = mdot_gas0*(t/ts_0 +1)**(-(2.5+p)/(2+p))
+    t0 = t0_dep*365.25d0*1d+6 ! day
+    td = tau_dep*365.25d0*1d+6 ! day  
+    mdot_gas = mdot_gas0*exp(-(t-t0)/td)
   else 
     mdot_gas =  mdot_gas0
   end if 

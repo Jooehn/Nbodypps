@@ -43,9 +43,11 @@
  pebble mass flux (Mearth/yr) =   2.0000000000000000E-004
  pebble's stokes number =    1E-001
  opacity coefficient =    1E-002
+ onset time of disk dispersal (Myr) =    1E+6
+ disk dispersal timescale (Myr) =    2E+5
 allow planet mass increas by pebble accretion  = yes
 include the viscously heated region  = yes
-include the time evolution of accretion rate  = no
+include the time evolution of accretion rate  = yes
 include disk migration = 2 
 include pebble isolation mass = no
 include gas accretion = yes

@@ -419,7 +419,7 @@ subroutine mio_in (time,h0,tol,rcen,jcen,en,am,cefac,ndump,nfun,nbod,nbig,m,x,v,
   
   ! Read integration parameters
   lineno = 0
-  do j = 1, 40
+  do j = 1, 42
      do
         lineno = lineno + 1
         read (13,'(a150)') string
@@ -477,15 +477,17 @@ subroutine mio_in (time,h0,tol,rcen,jcen,en,am,cefac,ndump,nfun,nbod,nbig,m,x,v,
      if (j.eq.32) read (c80,*,err=661) Mdot_peb
      if (j.eq.33) read (c80,*,err=661) tau_s
      if (j.eq.34) read (c80,*,err=661) kap
-     if ((j.eq.35).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(9) = 1
-     if ((j.eq.36).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(10) = 1
-     if ((j.eq.37).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(11) = 1
-     if ((j.eq.38).and.((c1.eq.'o').or.(c1.eq.'0'))) opt(12) = 0
-     if ((j.eq.38).and.((c1.eq.'o').or.(c1.eq.'1'))) opt(12) = 1
-     if ((j.eq.38).and.((c1.eq.'t').or.(c1.eq.'2'))) opt(12) = 2
-     if ((j.eq.38).and.((c1.eq.'t').or.(c1.eq.'3'))) opt(12) = 3
-     if ((j.eq.39).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(13) = 1
-     if ((j.eq.40).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(14) = 1
+     if (j.eq.35) read (c80,*,err=661) t0_dep
+     if (j.eq.36) read (c80,*,err=661) tau_dep
+     if ((j.eq.37).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(9) = 1
+     if ((j.eq.38).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(10) = 1
+     if ((j.eq.39).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(11) = 1
+     if ((j.eq.40).and.(c1.eq.'0')) opt(12) = 0
+     if ((j.eq.40).and.(c1.eq.'1')) opt(12) = 1
+     if ((j.eq.40).and.(c1.eq.'2')) opt(12) = 2
+     if ((j.eq.40).and.(c1.eq.'3')) opt(12) = 3
+     if ((j.eq.41).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(13) = 1
+     if ((j.eq.42).and.((c1.eq.'y').or.(c1.eq.'Y'))) opt(14) = 1
   end do
   h0 = abs(h0)
   tol = abs(tol)

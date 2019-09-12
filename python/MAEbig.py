@@ -58,7 +58,7 @@ def readdata(filename):
 try:
     sys.argv[1]
 except (IndexError,NameError):
-    source  = 'pa+mig6'
+    source  = 'diskdeptest3'
 else:
     source = sys.argv[1] #The vars.ini file
 #    vars_   = process_input(inputfile)
@@ -141,13 +141,13 @@ for k in range(0,4):
         
         axes.axhline(r_trans,linewidth=lw2, color='c', linestyle='--')
         axes.axhline(r_snow,linewidth=lw2, color='m', linestyle='--')
-        axes.text(2e4,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
-        axes.text(2e4,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
+        axes.text(1.5e6,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
+        axes.text(1.5e6,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
         
         axlist[k].axhline(r_trans,linewidth=lw2, color='c', linestyle='--')
         axlist[k].axhline(r_snow,linewidth=lw2, color='m', linestyle='--')
-        axlist[k].text(2e4,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
-        axlist[k].text(2e4,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
+        axlist[k].text(1.5e6,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
+        axlist[k].text(1.5e6,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
         print (output)
     if k == 2: 
         output = 'ecc_time'
@@ -166,9 +166,9 @@ for k in range(0,4):
                 #plot line width
                 gm_idx = check_gapmass(semi_big,mass_big,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)
                 if gm_idx is None:
-                    lw = lw4
+                    lw = lw3
                 else:
-                    lw = lw5
+                    lw = lw4
                 axes.plot(time_big,mass_big,linewidth=lw,color=ccycle[i-1],\
                       zorder=1)
                 axes.set_xlabel(r'$\mathrm{ Time \ (yr)}$')

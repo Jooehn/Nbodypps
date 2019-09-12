@@ -42,7 +42,7 @@ subroutine pebbleaccretion (t,hstep,nbod,m,x,v,rphys,rho,m_x)
 
 !  use types_numeriques
 !  use physical_constant, only : PI, TWOPI, MSUN, K2, EARTH_MASS, AU
-  use mercury_globals, only : opt,alpha_t, kap, mdot_gas0, L_s, Rdisk0, Mdot_peb, alpha, tau_s
+  use mercury_globals, only : opt,alpha_t, kap, mdot_gas0, L_s, Rdisk0, Mdot_peb, alpha, tau_s,t0_dep,tau_dep
   use user_module, only: gasdisk 
  
   implicit none
@@ -209,7 +209,7 @@ subroutine gasaccretion (t,hstep,nbod,m,x,v,rphys,rho,m_x)
 
 !  use types_numeriques
 !  use physical_constant, only : PI, TWOPI, MSUN, K2, EARTH_MASS, AU
-  use mercury_globals, only : opt,alpha_t, kap, mdot_gas0, alpha,tau_s
+  use mercury_globals, only : opt,alpha_t, kap, mdot_gas0, alpha,tau_s,t0_dep,tau_dep
   use user_module
  
   implicit none

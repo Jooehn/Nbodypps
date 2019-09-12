@@ -411,20 +411,22 @@ subroutine mio_dump (time,h0,tol,jcen,rcen,en,am,cefac,ndump,nfun,nbod,nbig,m,x,
      write (33,*) mem(193)(1:lmem(193)),Mdot_peb
      write (33,*) mem(194)(1:lmem(194)),tau_s
      write (33,*) mem(195)(1:lmem(195)),kap
+     write (33,*) mem(196)(1:lmem(196)),t0_dep
+     write (33,*) mem(197)(1:lmem(197)),tau_dep
      if (opt(9).eq.1) then
-        write (33,'(2a)') mem(196)(1:lmem(196)),mem(6)(1:lmem(6))
-     else
-        write (33,'(2a)') mem(196)(1:lmem(196)),mem(5)(1:lmem(5))
-     end if
-     if (opt(10).eq.1) then
-        write (33,'(2a)') mem(197)(1:lmem(197)),mem(6)(1:lmem(6))
-     else
-        write (33,'(2a)') mem(197)(1:lmem(197)),mem(5)(1:lmem(5))
-     end if
-     if (opt(11).eq.1) then
         write (33,'(2a)') mem(198)(1:lmem(198)),mem(6)(1:lmem(6))
      else
         write (33,'(2a)') mem(198)(1:lmem(198)),mem(5)(1:lmem(5))
+     end if
+     if (opt(10).eq.1) then
+        write (33,'(2a)') mem(199)(1:lmem(199)),mem(6)(1:lmem(6))
+     else
+        write (33,'(2a)') mem(199)(1:lmem(199)),mem(5)(1:lmem(5))
+     end if
+     if (opt(11).eq.1) then
+        write (33,'(2a)') mem(200)(1:lmem(200)),mem(6)(1:lmem(6))
+     else
+        write (33,'(2a)') mem(200)(1:lmem(200)),mem(5)(1:lmem(5))
      end if
      !if (opt(12).eq.1) then
         !write (33,'(2a)') mem(199)(1:lmem(199)),mem(6)(1:lmem(6))
@@ -432,23 +434,23 @@ subroutine mio_dump (time,h0,tol,jcen,rcen,en,am,cefac,ndump,nfun,nbod,nbig,m,x,
         !write (33,'(2a)') mem(199)(1:lmem(199)),mem(5)(1:lmem(5))
      !end if
      if (opt(12).eq.0) then
-        write (33,'(2a)') mem(199)(1:lmem(199)),'0'
+        write (33,'(2a)') mem(201)(1:lmem(201)),'0'
      else if (opt(12).eq.1) then 
-        write (33,'(2a)') mem(199)(1:lmem(199)),'1'
+        write (33,'(2a)') mem(201)(1:lmem(201)),'1'
      else if (opt(12).eq.2) then 
-        write (33,'(2a)') mem(199)(1:lmem(199)),'2'
+        write (33,'(2a)') mem(201)(1:lmem(201)),'2'
      else 
-        write (33,'(2a)') mem(199)(1:lmem(199)),'3'
+        write (33,'(2a)') mem(201)(1:lmem(201)),'3'
      end if 
      if (opt(13).eq.1) then
-        write (33,'(2a)') mem(200)(1:lmem(200)),mem(6)(1:lmem(6))
+        write (33,'(2a)') mem(202)(1:lmem(202)),mem(6)(1:lmem(6))
      else
-        write (33,'(2a)') mem(200)(1:lmem(200)),mem(5)(1:lmem(5))
+        write (33,'(2a)') mem(202)(1:lmem(202)),mem(5)(1:lmem(5))
      end if
      if (opt(14).eq.1) then
-        write (33,'(2a)') mem(201)(1:lmem(201)),mem(6)(1:lmem(6))
+        write (33,'(2a)') mem(203)(1:lmem(203)),mem(6)(1:lmem(6))
      else
-        write (33,'(2a)') mem(201)(1:lmem(201)),mem(5)(1:lmem(5))
+        write (33,'(2a)') mem(203)(1:lmem(203)),mem(5)(1:lmem(5))
      end if
 
      close (33)
