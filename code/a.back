@@ -1,0 +1,419 @@
+!******************************************************************************
+! MODULE: user_module
+!******************************************************************************
+!
+! DESCRIPTION: 
+!> @brief Module that contain user defined function. This module can call other module and subroutine. 
+!! The only public routine is mfo_user, that return an acceleration that 
+!! mimic a random force that depend on what the user want to model.
+!
+!******************************************************************************
+
+module user_module
+
+  use types_numeriques
+  use physical_constant
+
+  implicit none
+  
+  private
+  
+  public :: mfo_user, gasdisk
+  
+  contains
+
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!> @author 
+!> John E. Chambers
+!
+!> @date 2 March 2001
+!
+! DESCRIPTION: 
+!> @brief Applies an arbitrary force, defined by the user.
+!!\n\n
+!! If using with the symplectic algorithm MAL_MVS, the force should be
+!! small compared with the force from the central object.
+!! If using with the conservative Bulirsch-Stoer algorithm MAL_BS2, the
+!! force should not be a function of the velocities.
+!! \n\n
+!! Code Units are in AU, days and solar mass * K2 (mass are in solar mass, but multiplied by K2 earlier in the code).
+!
+!> @note All coordinates and velocities must be with respect to central body
+!
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+subroutine mfo_user (time,jcen,n_bodies,n_big_bodies,mass, phyradius, position, velocity,acceleration)
+!  mass          = mass (in solar masses * K2)
+!  position      = coordinates (x,y,z) with respect to the central body [AU]
+!  velocity      = velocities (vx,vy,vz) with respect to the central body [AU/day]
+!  n_bodies      = current number of bodies (INCLUDING the central object)
+!  n_big_bodies  =    "       "    " big bodies (ones that perturb everything else)
+!  time          = current epoch [days]
+
+  use mercury_constant
+  use physical_constant, only : PI, TWOPI, AU, MSUN, K2
+  
+  implicit none
+
+  
+  ! Input
+  integer, intent(in) :: n_bodies !< [in] current number of bodies (1: star; 2-nbig: big bodies; nbig+1-nbod: small bodies)
+  integer, intent(in) :: n_big_bodies !< [in] current number of big bodies (ones that perturb everything else)
+  real(double_precision), intent(in) :: time !< [in] current epoch (days)
+  real(double_precision), intent(in) :: jcen(3) !< [in] J2,J4,J6 for central body (units of RCEN^i for Ji)
+  real(double_precision), intent(in) :: mass(n_bodies) !< [in] mass (in solar masses * K2)
+  real(double_precision), intent(in) :: phyradius(n_bodies) !< planet radius 
+  real(double_precision), intent(in) :: position(3,n_bodies)
+  real(double_precision), intent(in) :: velocity(3,n_bodies)
+  
+  ! Output
+  real(double_precision),intent(out) :: acceleration(3,n_bodies)
+  
+  !------------------------------------------------------------------------------ 
+  !------Local-------
+
+  ! loop integers
+  integer :: planet
+  real(double_precision) :: radii ! distace of the planet ( in AU)
+  real(double_precision) :: acc_mig(3), acc_drag(3)
+  real(double_precision) :: msmall
+  
+  do planet = 2, n_bodies
+! planet's location in disk
+    radii = (position(1,planet)**2 + position(2,planet)**2)**0.5 
+! truncate the disk at 0.05 AU
+    if (radii >1d-1) then 
+      if (planet <= n_big_bodies) then  ! for big bodies 
+! calculate the acc from both the migration and gas drag effect
+        call  migration_one (time,mass(1),planet,mass(planet),position(:,planet),velocity(:,planet),acc_mig(:))
+        call  gasdrag (time,mass(1),planet,mass(planet), phyradius(planet),position(:,planet),velocity(:,planet),acc_drag(:))
+        acceleration(1,planet) = + acc_drag(1) + acc_mig(1)
+        acceleration(2,planet) = + acc_drag(2) + acc_mig(2)
+        acceleration(3,planet) = + acc_drag(3) + acc_mig(3)
+      else ! for small bodies, neglecting type I
+        msmall=mass(planet)/50.d0 ! 1 sp = 50 plts
+        !call  migration_one (time,mass(1),planet,msmall,position(:,planet),velocity(:,planet),acc_mig(:))
+        call  gasdrag (time,mass(1),planet,msmall, phyradius(planet),position(:,planet),velocity(:,planet),acc_drag(:))
+        acceleration(1,planet) =  acc_drag(1)
+        acceleration(2,planet) =  acc_drag(2)
+        acceleration(3,planet) =  acc_drag(3)
+      end if
+      !acceleration(1,planet) = acc_mig(1) + acc_drag(1)
+      !acceleration(2,planet) = acc_mig(2) + acc_drag(2)
+      !acceleration(3,planet) = acc_mig(3) + acc_drag(3)
+    else ! inside of the inner edge 
+      acceleration(1,planet) = 0.d0
+      acceleration(2,planet) = 0.d0
+      acceleration(3,planet) = 0.d0
+    end if
+  end do
+  
+  !------------------------------------------------------------------------------
+  return
+end subroutine mfo_user
+
+
+
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+!   type I miration subroutine
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+! Author: Beibei Liu
+!
+! Calculates the type I migration acceleration on a planet.
+!
+! Uses the migration formula describled in Cresswell & Nelson 2008
+!
+
+
+subroutine migration_one (t,mstar,num,mpl,x,v,acc)
+!  mpl    = planet mass (in solar masses * K2)
+!  mstar  = star mass (in solar masses * K2)
+!  x      = coordinates (x,y,z) with respect to the central body [AU]
+!  v      = velocities (vx,vy,vz) with respect to the central body [AU/day]
+!  num    = current number of bodies
+!  t      = current epoch [days]
+
+  use mercury_constant
+  use physical_constant, only : PI, TWOPI, AU, MSUN, K2
+  use mercury_globals
+  
+  implicit none
+
+  
+  ! Input
+  integer, intent(in) :: num
+  real(double_precision), intent(in) :: t, mpl, mstar
+  real(double_precision), intent(in) :: x(3), v(3)
+  real(double_precision), intent(out) :: acc(3)
+  real(double_precision) :: asemi(3), aecc(3), ainc
+  real(double_precision) :: taumig, tauecc, tauinc
+  real(double_precision) :: pecc, hgas, etagas, rhogas
+  real(double_precision) :: tauwave, rdisk, siggas, Omega
+  real(double_precision) :: r2, v2, rv, r, zmb, semi
+  real(double_precision) :: ecc2, ecc, hz, h2, inc
+  real(double_precision) :: f_a
+  integer k
+! planet's location in the disk  
+  rdisk = (x(1)**2 + x(2)**2 )**0.5
+!  sig_gas = 1d-02*mstar ! in solar mass
+!  sig_gas = 5d+02/MSUN*AU**2*K2*rdisk**(-1) ! in solar mass
+!  hoverr = 0.033*rdisk**(1./4)
+
+!  call gasdisk to obtain the surface density and apsect ratio, headwind prefactor at planet's location  
+  !call gasdisk (t,rdisk,x(3),tau_dep,siggas0,siggas,hgas0,hgas,etagas,rhogas,index_p,index_q)
+  call gasdisk (t,rdisk,x(3),mdot_gas,alpha,kap,hgas,etagas,siggas,rhogas)
+
+  !  call mig_prefactor(XXX)
+
+! angular velocity at planet's location
+  Omega = (mstar/rdisk**3)**0.5d0 ! in day^{-1}
+! calculate eccentricity and inclination 
+  r2 = 0.d0
+  v2 = 0.d0
+  rv = 0.d0
+  do  k = 1,3
+    r2 = r2 + x(k)**2
+    v2 = v2 + v(k)**2
+    rv = rv + x(k)*v(k)
+  end do
+  r = r2**0.5d0
+  zmb = mstar + mpl
+  semi = 2.0d0/r - v2/zmb
+  semi = 1.0d0/semi
+  ecc2 = (1.0d0 - r/semi)**2 + rv**2/(semi*zmb)
+  ecc = ecc2**0.5d0
+  hz=x(1)*v(2)-x(2)*v(1)
+  h2=((x(2)*v(3)-x(3)*v(2))**2 &
+  + (x(3)*v(1)-x(1)*v(3))**2+hz**2)**0.5d0
+  if (abs(hz/h2) < 1.d0) then
+    inc = acos(hz/h2)
+  else
+    if (hz/h2 > 0d0) inc = 0.d0
+    if (hz/h2 < 0d0) inc = PI
+  end if
+
+! wave timescale
+  tauwave = (mstar/mpl)*(mstar/(siggas*rdisk**2))*hgas**4/Omega
+! eccentricity damping timescale
+  tauecc = tauwave/0.78d0*(1d0 - 0.14d0*(ecc/hgas)**2 &
+  + 6d-2*(ecc/hgas)**3 + 0.18d0*(ecc/hgas)*(inc/hgas)**2)
+! inclination damping timescale
+  tauinc = tauwave/0.544d0*(1d0 - 0.3d0*(inc/hgas)**2 &
+  + 0.24d0*(inc/hgas)**3 + 0.14d0*(ecc/hgas)**2*(inc/hgas))
+  pecc = ( 1d0 + (ecc/(2.25d0*hgas))**1.2d0 + &
+  (ecc/(2.84d0*hgas))**6  )/(1.0d0 -(ecc/(2.02d0*hgas))**4 )
+!  taumig = 2d0*tauwave/(2.7d0 - 1.1d0*index_p)/hgas**2*(pecc + pecc/abs(pecc) &
+!  *(0.07d0*(inc/hgas) + 0.085d0*(inc/hgas)**4 -0.08d0*(ecc/hgas)*(inc/hgas)**2 ))
+! migration  timescale, the prefactor is from Paardekooper 2010
+  f_a = 1.0 
+
+  taumig = f_a*tauwave/hgas**2
+  tauecc = tauwave/0.78d0
+  tauinc = tauwave/0.544d0
+!  taumig = 2d0*tauwave/(2.7d0 + 1.1d0*beta)/hoverr**2
+!  taumig = 1d+3*365.25d0 
+!  tauecc = 1d+2*365.25d0
+!  tauinc = 1d+2*365.25d0
+
+
+! eccentricity and inclination damping 
+  do  k = 1,3
+    asemi(k) = -v(k)/taumig
+    !asemi(k) = 0d0 ! no radial semimajor axis migration 
+    aecc(k) = -2*rv*x(k)/r**2/tauecc
+    acc(k) = asemi(k) + aecc(k)
+  end do
+  ! addtional vertical damping
+  ainc = -v(3)/tauinc
+  acc(3) = acc(3) + ainc
+  return
+end subroutine migration_one
+
+
+
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+!   Gas drag on large planetesimal
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+! Author: Beibei Liu
+!
+! Calculates the gas drag acceleration on a 100-1000km planetesimal.
+!
+! Uses the drag force describled in Mandell 2007
+!
+
+
+subroutine gasdrag (t,mstar,num, mpl,rphypl, x,v,acc)
+!  mpl          = planet mass (in solar masses * K2)
+!  rhypl          = planet radius 
+!  mstar          = star mass (in solar masses * K2)
+!  x      = coordinates (x,y,z) with respect to the central body [AU]
+!  v      = velocities (vx,vy,vz) with respect to the central body [AU/day]
+!  num      = current number of bodies
+!  t          = current epoch [days]
+
+  use mercury_constant
+  use physical_constant, only : PI, AU, MSUN, K2
+  use mercury_globals, only : siggas0, hgas0, tau_dep, index_p, index_q
+  implicit none
+
+  
+  ! Input
+  integer, intent(in) :: num
+  real(double_precision), intent(in) :: t, mpl,rphypl, mstar
+  real(double_precision), intent(in) :: x(3), v(3)
+  real(double_precision), intent(out) :: acc(3)
+  real(double_precision) :: hgas, rdisk, siggas, Omega, vk
+  real(double_precision) :: tmp, vg_x, vg_y, cosf, sinf
+  real(double_precision) :: dv_x,dv_y,dv_z, dv, vk_x,vk_y,vg_over_vk
+  real(double_precision) :: Cgas = 0.5d0 ! gas drag coefficient
+  real(double_precision) :: rhopl  ! volumn density of the planet/planetesimal (in g/cm^3) 
+  real(double_precision) :: rhogas, rhogas_mid ! volumn density of the disk gas (in g/cm^3) 
+  real(double_precision) :: Rpl ! diamater of the planet/planetesimal  (! in AU)
+  real(double_precision) :: etagas ! headwind factor \eta
+  integer :: k
+!  planet's location in the disk r_p = (r,z) 
+  rdisk = (x(1)**2 + x(2)**2 )**0.5d0
+!  call gasdisk to calculate the surface density and apsect ratio, headwind prefactor at planet's location  
+  call gasdisk (t,rdisk,x(3),tau_dep,siggas0,siggas,hgas0,hgas,etagas,rhogas,index_p,index_q)
+!  planet's radius 
+  rhopl = 3d0*mpl/4d0/pi/rphypl**3/( AU * AU * AU * K2 / MSUN)
+  !Rpl = (3.d0*mpl/K2*MSUN/PI/rhopl/4.d0)**(1d0/3d0)/AU ! (in AU)
+  Rpl = rphypl ! (in AU)
+  !print*, 'plt R',Rpl
+!  gas drag prefactor
+  tmp = - 3.d0/8.d0*Cgas*(rhogas/rhopl)/Rpl
+!  angular velocity and Kepler velocity at the body's location  
+  Omega = (mstar/rdisk**3)**0.5d0 ! in day^{-1}
+  vk = (mstar/rdisk)**0.5d0 ! in day^{-1}
+!  Keplerian velocity at planet's location (x,y)
+  cosf  = x(1)/rdisk
+  sinf  = x(2)/rdisk
+  vk_x = - vk*sinf
+  vk_y =   vk*cosf
+! the vg(z,r) with respect to vk(r) Takeuchi-Lin 2002 eq(7)
+  vg_over_vk = (x(1)**2 + x(2)**2 + x(3)**2)**0.5d0/rdisk &
+  *(1.d0 + 0.5d0*hgas**2*(index_p+index_q-2.d0 -(2d0*index_q-1.0d0) &
+  /2.0d0*(x(3)/hgas/rdisk)**2))
+! gas velocity at planet's location (x,y)
+  vg_x = vg_over_vk*vk_x
+  vg_y = vg_over_vk*vk_y
+! relative velocity between gas and planet at planet's location (x,y,z)
+  dv_x = v(1) - vg_x
+  dv_y = v(2) - vg_y
+  dv_z = v(3) 
+  dv = (dv_x**2 + dv_y**2 + dv_z**2)**0.5d0
+  acc(1) = tmp*dv_x*dv
+  acc(2) = tmp*dv_y*dv
+  acc(3) = tmp*dv_z*dv
+
+end subroutine gasdrag
+
+
+
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+!   Gas disk properties
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+! Author: Beibei Liu
+!
+! give the properties of gas disk
+!
+
+subroutine gasdisk (t,r,z,mdot_gas,alpha,kap,hgas,etagas,siggas,rhogas)
+!  t                     = current epoch [days]
+!  tau0                  = gas disk depeltion timescale [year]
+!  tau_dep               = gas disk depeltion timescale [day]
+!  r                     = disk radius [AU]
+!  z                     = vertical distance [AU]
+!  siggas0               = gas surface desity at t=0 [g/cm^2]
+!  siggas                = gas surface desity at t  [K*MSUN/AU^2]
+!  rhogas_mid            = gas volumn desity in the midplane at r [g/cm^3]
+!  rhogas                = gas volumn desity at (r,z) [g/cm^3]
+!  etagas                = headwind prefactor 
+!  hgas                  = gas disk aspect ratio 
+!  hgas0                 = gas disk aspect ratio at 1AU
+!  p = index_p           = power index of surface density
+!  q = index_q           = power index of aspect ratio
+
+  use mercury_constant
+  use mercury_globals, only : siggas0, hgas0, tau_dep, index_p, index_q, Mdot_peb, alpha, tau_s,mdot_gas
+
+  use physical_constant, only : PI, TWOPI, AU, MSUN, K2
+  
+  implicit none
+
+
+  
+  ! Input
+  real(double_precision), intent(in) :: t, r, z
+  real(double_precision), intent(in) ::  alpha, kap
+  real(double_precision), intent(out) :: mdot_gas, hgas, etagas, siggas, rhogas
+  real(double_precision) :: p, q, siggas0_vis, siggas_vis, hgas0_vis, hgas_vis, T0_vis, T_vis 
+  real(double_precision) :: siggas0_irr, siggas_irr, hgas0_irr, hgas_irr, T0_irr, T_irr
+  real(double_precision) :: r_trans, fs, Temp,  rhogas_mid, etagas0 
+  real(double_precision) :: M_s, L_s
+
+  mdot_gas = 1e-8
+!!! this will change in future !!!
+  M_s = 1.0 
+  L_s = 1.0 
+!### viscous heated region ####
+  p = - 0.375  
+  q = -1./16
+  ! surface density at 1AU and as a function of r  in g/cm^2
+  siggas0_vis = 740*(mdot_gas/1d-8)**(1./2)*(M_s/1.d0)**(1./8)*(alpha/1d-3)**(-3./4)*(kap/1d-2)**(-1./4.)
+  siggas_vis = siggas0_vis*r**p
+  ! apsect ratio at 1AU and as a function of r 
+  hgas0_vis = 4.5e-2*(mdot_gas/1d-8)**(1./4)*(M_s/1.0)**(-5./16)*(alpha/1d-3)**(-1./8)*(kap/1d-2)**(1./8)*r**q
+  hgas_vis = hgas0_vis*r**q
+  ! temperature  at 1AU and as a function of r  in K
+  T0_vis = 500.*(mdot_gas/1d-8)**(1./2)*(M_s/1.0)**(3./8)*(alpha/1d-3)**(-1./4)*(kap/1d-2)**(1./4)
+  T_vis = T0_vis*r**(2*q-1)
+
+
+!### stellar irradition region ####
+  p = - 0.375  
+  q = -1./16
+  ! surface density at 1AU and as a function of r  in g/cm^2
+  siggas0_irr = 2500*(mdot_gas/1d-8)*(L_s/1.0)**(-2./7)*(M_s/1.0)**(9./14)*(alpha/1d-3)**(-1) 
+  siggas_irr = siggas0_irr*r**p 
+  ! apsect ratio at 1AU and as a function of r 
+  hgas0_irr = 2.45e-2*(L_s/1.0)**(1./7)*(M_s/1.0)**(-4./7)
+  hgas_irr = hgas0_irr*r**q
+  ! temperature  at 1AU and as a function of r  in K
+  T0_irr = 150.*(L_s/1.0)**(2./7)*(M_s/1.0)**(-1./7)
+  T_irr = T0_irr*r**(2*q-1)
+  ! transition radius for two regions 
+  r_trans = (500./150.)**(56./39)*(mdot_gas/1d-8)**(28./39)*(M_s/1.0)**(29./39)*(alpha/1d-3)**(-14./39)*(L_s/1.0)**(-16./39)*(kap/1d-2)**(14./39)
+
+!  ### combine of two regions ###
+  if 1 == 1: ! include the inner viscously heated region 
+    fs = 1./(1. + (r/r_trans)**4)
+  else ! only irradiation 
+    fs = 0.0
+  end if 
+
+  siggas = fs*siggas_vis + (1.0 - fs)*siggas_irr
+  Temp = fs*T_vis + (1.0 - fs)*T_irr
+  hgas = fs*hgas_vis + (1.0 - fs)*hgas_irr
+  ! midplane volume density  in g/cm^3
+  rhogas_mid = siggas/TWOPI**0.5d0/hgas/AU
+  ! gas volume density rho(r,z) 
+  rhogas = rhogas_mid*exp(-z**2/(hgas*r)**2) ! in g/cm^3
+  ! gas headwind prefactor at 1AU
+  etagas0 = (2.d0 - p - q)/2.0d0
+  ! gas headwind prefactor  
+  etagas = etagas0*hgas**2
+
+  ! gas surface density at  [in solar mass*K2]
+  siggas = siggas/MSUN*AU**2*K2*r**p ! in solar mass*K2
+
+end subroutine gasdisk
+
+
+
+
+
+
+
+
+end module user_module
+
