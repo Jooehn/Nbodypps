@@ -174,9 +174,11 @@ for k in range(0,4):
             if im_idx is None:
                 alph = 0.4
                 col   = 'k'
+                zord = 1
             else:
                 alph  = 1
                 col   = ccycle[i-1]
+                zord = 0
             
             if output =='mass_time':
                 #We check if the planet reaches its gap opening mass at any point
@@ -188,13 +190,13 @@ for k in range(0,4):
                 else:
                     lw = lw4
                 axes.plot(time_big,mass_big,linewidth=lw,color=col,\
-                      zorder=1,alpha = alph)
+                      zorder=zord,alpha = alph)
                 axes.set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axes.set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axes.set_ylim(mmin,mmax)
                 #We also plot the data in a separate figure
                 axlist[k].plot(time_big,mass_big,linewidth=lw,color=col,\
-                      zorder=1,alpha=alph)
+                      zorder=zord,alpha=alph)
                 axlist[k].set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axlist[k].set_ylim(mmin,mmax)
@@ -216,13 +218,13 @@ for k in range(0,4):
                 else:
                     lw = lw4
                 axes.plot(time_big,semi_big,linewidth=lw,color=col,\
-                          zorder=1,alpha=alph)
+                          zorder=zord,alpha=alph)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axes.set_ylim(amin,amax)
                 
                 axlist[k].plot(time_big,semi_big,linewidth=lw,color=col,\
-                      zorder=1,alpha=alph)
+                      zorder=zord,alpha=alph)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axlist[k].set_ylim(amin,amax)
@@ -237,28 +239,28 @@ for k in range(0,4):
                 #If the planet survives the integration we plot a dot with a 
                 #size proportional to its mass at its final radius
                 if i in surv_ids:
-                    msize = mass_big[-1]**(1/3)*10
-                    axes.text(2e6,semi_big[-1],r'$\bullet$',fontsize=msize,color='b',\
+                    msize = mass_big[-1]**(1/3)
+                    axes.text(time_big[-1],semi_big[-1],r'$\bullet$',fontsize=msize,color=col,\
                               zorder=3,ha='center',va='center')
-                    axlist[k].text(2e6,semi_big[-1],r'$\bullet$',fontsize=msize,color='b',\
+                    axlist[k].text(time_big[-1],semi_big[-1],r'$\bullet$',fontsize=msize,color=col,\
                               zorder=3,ha='center',va='center')
             if output =='ecc_time':
-                axes.plot(time_big,ecc_big,linewidth=lw3,color=col,alpha=alph)
+                axes.plot(time_big,ecc_big,linewidth=lw3,color=col,alpha=alph,zorder=zord)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Eccentricity}$')
                 axes.set_ylim(emin,emax)
                 
-                axlist[k].plot(time_big,ecc_big,linewidth=lw3,color=col,alpha=alph)
+                axlist[k].plot(time_big,ecc_big,linewidth=lw3,color=col,alpha=alph,zorder=zord)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Eccentricity}$')
                 axlist[k].set_ylim(emin,emax)
             if output =='inc_time':
-                axes.plot(time_big,inc_big,linewidth=lw3,color=col,alpha=alph)
+                axes.plot(time_big,inc_big,linewidth=lw3,color=col,alpha=alph,zorder=zord)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Inclination (radian)}$')
                 axes.set_ylim(imin,imax)
                 
-                axlist[k].plot(time_big,inc_big,linewidth=lw3,color=col,alpha=alph)
+                axlist[k].plot(time_big,inc_big,linewidth=lw3,color=col,alpha=alph,zorder=zord)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Inclination (radian)}$')
                 axlist[k].set_ylim(imin,imax)
