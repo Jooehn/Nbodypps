@@ -175,11 +175,12 @@ for k in range(0,4):
                 alph = 0.4
                 col   = 'k'
                 zord = 1
+                zordm = 2
             else:
                 alph  = 1
                 col   = ccycle[i-1]
                 zord = 0
-            
+                zordm = 1
             if output =='mass_time':
                 #We check if the planet reaches its gap opening mass at any point
                 #of its evolution. If so, we increase the thickness of its
@@ -205,9 +206,9 @@ for k in range(0,4):
                 if i in collinfo[0]:  
                     idx = np.where(i==collinfo[0])[0]
                     axes.plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=col,\
-                          markeredgecolor='k',markeredgewidth=0.5,zorder=2,alpha=alph)
+                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm,alpha=alph)
                     axlist[k].plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=col,\
-                          markeredgecolor='k',markeredgewidth=0.5,zorder=2,alpha=alph)
+                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm,alpha=alph)
             if output =='semi_time':
                 #We check if the planet reaches its gap opening mass at any point
                 #of its evolution. If so, we increase the thickness of its
@@ -233,9 +234,9 @@ for k in range(0,4):
                 #time and semi-major axis
                 if im_idx is not None:
                     axes.plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=col,\
-                          markeredgecolor='k',markeredgewidth=0.5,zorder=2)
+                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm)
                     axlist[k].plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=col,\
-                          markeredgecolor='k',markeredgewidth=0.5,zorder=2)
+                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm)
                 #If the planet survives the integration we plot a dot with a 
                 #size proportional to its mass at its final radius
                 if i in surv_ids:
