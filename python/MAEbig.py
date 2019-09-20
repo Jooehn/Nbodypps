@@ -58,7 +58,7 @@ def readdata(filename):
 try:
     sys.argv[1]
 except (IndexError,NameError):
-    source  = 'diskdeptest3'
+    source  = 'diskdeptest1'
 else:
     source = sys.argv[1] #The vars.ini file
 #    vars_   = process_input(inputfile)
@@ -109,6 +109,9 @@ alpha_d, alpha_v, mdot_gas, L_s, _, _, st, kap, M_s, opt_vis = get_disk_params()
 r_trans = rtrans(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
 r_snow = rsnow(mdot_gas,L_s,M_s,alpha_v,kap,opt_vis)
 
+#We get an array of indices for survivors
+surv_ids = get_survivor_ids()
+
 # change into figure direction
 os.chdir(workdir)
 
@@ -139,15 +142,15 @@ for k in range(0,4):
     if k == 1: 
         output = 'semi_time'
         
-        axes.axhline(r_trans,linewidth=lw2, color='c', linestyle='--')
-        axes.axhline(r_snow,linewidth=lw2, color='m', linestyle='--')
-        axes.text(1.5e6,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
-        axes.text(1.5e6,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
+        axes.axhline(r_trans,linewidth=lw3, color='c', linestyle='--',zorder=2)
+        axes.axhline(r_snow,linewidth=lw3, color='m', linestyle='--',zorder=2)
+        axes.text(2.01e6,r_trans,'$\\rm r_{\\rm trans}$',color='c')
+        axes.text(2.01e6,r_snow,'$\\rm r_{\\rm ice}$',color='m')
         
-        axlist[k].axhline(r_trans,linewidth=lw2, color='c', linestyle='--')
-        axlist[k].axhline(r_snow,linewidth=lw2, color='m', linestyle='--')
-        axlist[k].text(1.5e6,0.68*r_trans,'$\\rm r_{\\rm trans}$',color='c')
-        axlist[k].text(1.5e6,0.68*r_snow,'$\\rm r_{\\rm ice}$',color='m')
+        axlist[k].axhline(r_trans,linewidth=lw3, color='c', linestyle='--',zorder=2)
+        axlist[k].axhline(r_snow,linewidth=lw3, color='m', linestyle='--',zorder=2)
+        axlist[k].text(2.01e6,r_trans,'$\\rm r_{\\rm trans}$',color='c')
+        axlist[k].text(2.01e6,r_snow,'$\\rm r_{\\rm ice}$',color='m')
         print (output)
     if k == 2: 
         output = 'ecc_time'
@@ -160,6 +163,21 @@ for k in range(0,4):
             filename = sourcedir+ 'P'+ str(i)+'.aei'
             time_big, semi_big, ecc_big, inc_big, mass_big, fwater_big = \
             readdata(filename)
+            #To account for possible negative semi_values we set these values
+            #to the radius where we have our cavity
+            semi_big[semi_big<0] = 1e-1
+            
+            #We set the color or the alpha value given the final mass of the planet
+            #and if it survives the integration. Only isolation mass planets
+            #get colour, the rest are set to black with a low alpha
+            im_idx = check_isomass(semi_big,mass_big,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)
+            if im_idx is None:
+                alph = 0.4
+                col   = 'k'
+            else:
+                alph  = 1
+                col   = ccycle[i-1]
+            
             if output =='mass_time':
                 #We check if the planet reaches its gap opening mass at any point
                 #of its evolution. If so, we increase the thickness of its
@@ -169,14 +187,14 @@ for k in range(0,4):
                     lw = lw3
                 else:
                     lw = lw4
-                axes.plot(time_big,mass_big,linewidth=lw,color=ccycle[i-1],\
-                      zorder=1)
+                axes.plot(time_big,mass_big,linewidth=lw,color=col,\
+                      zorder=1,alpha = alph)
                 axes.set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axes.set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axes.set_ylim(mmin,mmax)
                 #We also plot the data in a separate figure
-                axlist[k].plot(time_big,mass_big,linewidth=lw,color=ccycle[i-1],\
-                      zorder=1)
+                axlist[k].plot(time_big,mass_big,linewidth=lw,color=col,\
+                      zorder=1,alpha=alph)
                 axlist[k].set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axlist[k].set_ylim(mmin,mmax)
@@ -184,10 +202,10 @@ for k in range(0,4):
                 #if that's the case
                 if i in collinfo[0]:  
                     idx = np.where(i==collinfo[0])[0]
-                    axes.plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=ccycle[i-1],\
-                          markeredgecolor='k',markeredgewidth=0.5,zorder=2)
-                    axlist[k].plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=ccycle[i-1],\
-                          markeredgecolor='k',markeredgewidth=0.5,zorder=2)
+                    axes.plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=col,\
+                          markeredgecolor='k',markeredgewidth=0.5,zorder=2,alpha=alph)
+                    axlist[k].plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=col,\
+                          markeredgecolor='k',markeredgewidth=0.5,zorder=2,alpha=alph)
             if output =='semi_time':
                 #We check if the planet reaches its gap opening mass at any point
                 #of its evolution. If so, we increase the thickness of its
@@ -197,42 +215,50 @@ for k in range(0,4):
                     lw = lw3
                 else:
                     lw = lw4
-                axes.plot(time_big,semi_big,linewidth=lw,color=ccycle[i-1],\
-                          zorder=1)
+                axes.plot(time_big,semi_big,linewidth=lw,color=col,\
+                          zorder=1,alpha=alph)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axes.set_ylim(amin,amax)
                 
-                axlist[k].plot(time_big,semi_big,linewidth=lw,color=ccycle[i-1],\
-                      zorder=1)
+                axlist[k].plot(time_big,semi_big,linewidth=lw,color=col,\
+                      zorder=1,alpha=alph)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axlist[k].set_ylim(amin,amax)
-                #We check if the planet has reached isolation mass
-                im_idx = check_isomass(semi_big,mass_big,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)
-                #If it has we plot the corresponding time and semi-major axis
+                
+                #If the planet has reach its isolation mass we plot the corresponding 
+                #time and semi-major axis
                 if im_idx is not None:
-                    axes.plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=ccycle[i-1],\
+                    axes.plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=col,\
                           markeredgecolor='k',markeredgewidth=0.5,zorder=2)
-                    axlist[k].plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=ccycle[i-1],\
+                    axlist[k].plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=col,\
                           markeredgecolor='k',markeredgewidth=0.5,zorder=2)
+                #If the planet survives the integration we plot a dot with a 
+                #size proportional to its mass at its final radius
+                if i in surv_ids:
+                    msize = mass_big[-1]**(1/3)*10
+                    axes.text(2e6,semi_big[-1],r'$\bullet$',fontsize=msize,color='b',\
+                              zorder=3,ha='center',va='center')
+                    axlist[k].text(2e6,semi_big[-1],r'$\bullet$',fontsize=msize,color='b',\
+                              zorder=3,ha='center',va='center')
             if output =='ecc_time':
-                axes.plot(time_big,ecc_big,linewidth=lw3,color=ccycle[i-1])
+                axes.plot(time_big,ecc_big,linewidth=lw3,color=col,alpha=alph)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Eccentricity}$')
                 axes.set_ylim(emin,emax)
                 
-                axlist[k].plot(time_big,ecc_big,linewidth=lw3,color=ccycle[i-1])
+                axlist[k].plot(time_big,ecc_big,linewidth=lw3,color=col,alpha=alph)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Eccentricity}$')
                 axlist[k].set_ylim(emin,emax)
             if output =='inc_time':
-                axes.plot(time_big,inc_big,linewidth=lw3,color=ccycle[i-1])
+                axes.plot(time_big,inc_big,linewidth=lw3,color=col,alpha=alph)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Inclination (radian)}$')
                 axes.set_ylim(imin,imax)
                 
-                axlist[k].plot(time_big,inc_big,linewidth=lw3,color=ccycle[i-1])
+                axlist[k].plot(time_big,inc_big,linewidth=lw3,color=col,alpha=alph)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Inclination (radian)}$')
                 axlist[k].set_ylim(imin,imax)
@@ -247,11 +273,11 @@ for k in range(0,4):
         axlist[k].semilogy()
 #        axlist[k].set_xticks([1e+2,1e+3,1e+4,1e+5,1e+6],['$10^{2}$','$10^{3}$','$10^{4}$','$10^{5}$','$10^{6}$'])
     
-    fig.suptitle(r'$\tau_s = '+'{:.2E}'.format(st)+'$')
+    fig.suptitle(r'$\tau_s = '+'{:.2E},\ '.format(st)+r'\alpha_t = '+'{:.2E},\ '.format(alpha_d)+r'\alpha_g = '+'{:.2E},\ '.format(alpha_v)+r'\kappa = '+'{:.2E}'.format(kap)+'$')
     add_date(fig)            
     fig.savefig(source+'_'+output+'.pdf',orientation='landscape', format='pdf',bbox_inches='tight', pad_inches=0.1)
 
-fig_all.suptitle(r'$\tau_s = '+'{:.2E}'.format(st)+'$')
+fig_all.suptitle(r'$\tau_s = '+'{:.2E},\ '.format(st)+r'\alpha_t = '+'{:.2E},\ '.format(alpha_d)+r'\alpha_g = '+'{:.2E},\ '.format(alpha_v)+r'\kappa = '+'{:.2E}'.format(kap)+'$')
 add_date(fig_all)
 fig_all.savefig(source+'_'+'all'+'.pdf',orientation='landscape', format='pdf',bbox_inches='tight', pad_inches=0.1)
 

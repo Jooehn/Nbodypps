@@ -18,7 +18,7 @@ from diskmodel import rsnow,rtrans
 
 #If an input file is provided in the call, e.g. 'python m6_exe.py vars.ini'
 #we read the input from there. Otherwise, we use the input given in this script
-
+argv = [0,'vars.ini']
 try:
     argv[1]
 except (IndexError,NameError):
@@ -168,7 +168,6 @@ print('Initiating integration')
 t = 0
 i = 2
 while t < T:
-    
     if insert_embryo & (t>0) & (i<=N):
         insert_planet_embryo(mp[0],avals[0],i)
         i += 1

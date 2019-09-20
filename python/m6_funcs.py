@@ -177,6 +177,15 @@ def get_names(dmp=False):
     
     return names
 
+def get_survivor_ids():
+    """Returns a list with the index and massdotsize for survivors in the system"""
+    
+    survivors = get_names(True)    
+    
+    surv_ids = [int(i.strip('P')) for i in survivors]
+    
+    return np.asarray(surv_ids)
+
 def check_cavity_planet():
     """Removes planet that has entered our cavity in order to keep the timestep
     from converging at low values and thereby slowing down our integration.

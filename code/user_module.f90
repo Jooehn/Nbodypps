@@ -377,8 +377,12 @@ subroutine gasdisk (t,r,z,mstar,alpha,kap,hgas,etagas,siggas,siggas_vis,siggas_i
   if ( opt(11) ==1 ) then ! time evolution of mdot_gas
     !mdot_gas = mdot_gas0*(t/ts_0 +1)**(-(2.5+p)/(2+p))
     t0 = t0_dep*365.25d0*1d+6 ! day
-    td = tau_dep*365.25d0*1d+6 ! day  
-    mdot_gas = mdot_gas0*exp(-(t-t0)/td)
+    td = tau_dep*365.25d0*1d+6 ! day 
+    if (t<t0)  then 
+      mdot_gas =  mdot_gas0
+    else        
+      mdot_gas = mdot_gas0*exp(-(t-t0)/td)
+    end if 
   else 
     mdot_gas =  mdot_gas0
   end if 
