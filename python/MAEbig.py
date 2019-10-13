@@ -58,7 +58,7 @@ def readdata(filename):
 try:
     sys.argv[1]
 except (IndexError,NameError):
-    source  = 'diskdeptest1'
+    source  = 'diskdep_uni3'
 else:
     source = sys.argv[1] #The vars.ini file
 #    vars_   = process_input(inputfile)
@@ -78,7 +78,7 @@ emax = 1
 imin = 1e-7
 imax = 1
 mmin = 1e-1#1e-11
-mmax = 100
+mmax = 1e3
 dmmin = 1e-16
 dmmax = 3e-10
 # linewidth 
@@ -130,34 +130,49 @@ else:
 ###### Main rountine: make figures ######
 #########################################
 
-fig_all, ax = plt.subplots(2,2,figsize=(12,8))
+fig_all, ax = plt.subplots(2,2,figsize=(12,8),sharey=True)
+fig_all.subplots_adjust(wspace=0.01)
 axlist = np.ravel(ax)
 
 for k in range(0,4): 
     fig, axes = plt.subplots(figsize=(8,5))
 ## k is the output figure type  ##
-    if k == 0:
-        output = 'mass_time' 
-        print (output)
-    if k == 1: 
+    if k == 0: 
         output = 'semi_time'
         
-        axes.axhline(r_trans,linewidth=lw3, color='c', linestyle='--',zorder=2)
-        axes.axhline(r_snow,linewidth=lw3, color='m', linestyle='--',zorder=2)
+        axes.axhline(r_trans,linewidth=1.5, color='c', linestyle='--',zorder=2)
+        axes.axhline(r_snow,linewidth=1.5, color='m', linestyle='--',zorder=2)
+        
+        axlist[k].axhline(r_trans,linewidth=1.5, color='c', linestyle='--',zorder=2)
+        axlist[k].axhline(r_snow,linewidth=1.5, color='m', linestyle='--',zorder=2)
+        print (output)
+    if k == 1:
+        output = 'semi_time_zoom' 
+        axes.axhline(r_trans,linewidth=lw4, color='c', linestyle='--',zorder=2)
+        axes.axhline(r_snow,linewidth=lw4, color='m', linestyle='--',zorder=2)
         axes.text(2.01e6,r_trans,'$\\rm r_{\\rm trans}$',color='c')
         axes.text(2.01e6,r_snow,'$\\rm r_{\\rm ice}$',color='m')
-        
-        axlist[k].axhline(r_trans,linewidth=lw3, color='c', linestyle='--',zorder=2)
-        axlist[k].axhline(r_snow,linewidth=lw3, color='m', linestyle='--',zorder=2)
+       
+        axlist[k].axhline(r_trans,linewidth=1.5, color='c', linestyle='--',zorder=2)
+        axlist[k].axhline(r_snow,linewidth=1.5, color='m', linestyle='--',zorder=2) 
         axlist[k].text(2.01e6,r_trans,'$\\rm r_{\\rm trans}$',color='c')
         axlist[k].text(2.01e6,r_snow,'$\\rm r_{\\rm ice}$',color='m')
         print (output)
     if k == 2: 
-        output = 'ecc_time'
+        output = 'mass_time'
         print (output)
     if k == 3: 
-        output = 'inc_time'
+        output = 'mass_semi'
         print (output)
+        axes.axvline(r_trans,linewidth=1.5, color='c', linestyle='--',zorder=2)
+        axes.axvline(r_snow,linewidth=1.5, color='m', linestyle='--',zorder=2)
+        axes.text(r_trans,500,'$\\rm r_{\\rm trans}$',color='c',ha='left',va='center')
+        axes.text(r_snow,500,'$\\rm r_{\\rm ice}$',color='m',ha='left',va='center')
+    
+        axlist[k].axvline(r_trans,linewidth=1.5, color='c', linestyle='--',zorder=2)
+        axlist[k].axvline(r_snow,linewidth=1.5, color='m', linestyle='--',zorder=2)
+        axlist[k].text(r_trans,500,'$\\rm r_{\\rm trans}$',color='c',ha='left',va='center')
+        axlist[k].text(r_snow,500,'$\\rm r_{\\rm ice}$',color='m',ha='left',va='center')
     if big == True and nbig >0:
         for i in range(1, nbig+1):
             filename = sourcedir+ 'P'+ str(i)+'.aei'
@@ -174,13 +189,13 @@ for k in range(0,4):
             if im_idx is None:
                 alph = 0.4
                 col   = 'k'
-                zord = 1
-                zordm = 2
+                zord = 0
+                zordm = 1
             else:
                 alph  = 1
                 col   = ccycle[i-1]
-                zord = 0
-                zordm = 1
+                zord = 2
+                zordm = 3
             if output =='mass_time':
                 #We check if the planet reaches its gap opening mass at any point
                 #of its evolution. If so, we increase the thickness of its
@@ -190,14 +205,25 @@ for k in range(0,4):
                     lw = lw3
                 else:
                     lw = lw4
-                axes.plot(time_big,mass_big,linewidth=lw,color=col,\
-                      zorder=zord,alpha = alph)
+                if im_idx is not None:
+                    pidx = im_idx+1
+                else:
+                    pidx = im_idx
+                axes.plot(time_big[:pidx],mass_big[:pidx],linewidth=lw,color='k',\
+                      zorder=zord,alpha=0.4)
+                axlist[k].plot(time_big[:pidx],mass_big[:pidx],linewidth=lw,color='k',\
+                  zorder=zord,alpha=0.4)
+                
+                if im_idx is not None:
+                    axes.plot(time_big[pidx-1:],mass_big[pidx-1:],linewidth=lw,color=col,\
+                          zorder=zord,alpha=alph)
+                    axlist[k].plot(time_big[pidx-1:],mass_big[pidx-1:],linewidth=lw,color=col,\
+                      zorder=zord,alpha=alph)
+                
                 axes.set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axes.set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axes.set_ylim(mmin,mmax)
                 #We also plot the data in a separate figure
-                axlist[k].plot(time_big,mass_big,linewidth=lw,color=col,\
-                      zorder=zord,alpha=alph)
                 axlist[k].set_xlabel(r'$\mathrm{ Time \ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Mass \\ (M_{\\oplus})}$')
                 axlist[k].set_ylim(mmin,mmax)
@@ -205,11 +231,20 @@ for k in range(0,4):
                 #if that's the case
                 if i in collinfo[0]:  
                     idx = np.where(i==collinfo[0])[0]
-                    axes.plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=col,\
-                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm,alpha=alph)
-                    axlist[k].plot(collinfo[2,idx],collinfo[1,idx],'X',markersize=5,markerfacecolor=col,\
-                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm,alpha=alph)
-            if output =='semi_time':
+                    for j in range(len(idx)):    
+                        colj = col
+                        alphj = alph
+                        if im_idx is not None:
+                            cmass_idx = np.where(collinfo[1,idx[j]]==mass_big)[0]
+                            if cmass_idx<im_idx:
+                                colj = 'k'
+                                alphj = 0.4
+                        axes.plot(collinfo[2,idx[j]],collinfo[1,idx[j]],'X',markersize=5,markerfacecolor=colj,\
+                              markeredgecolor='k',markeredgewidth=0.5,zorder=zordm,alpha=alphj)
+                        axlist[k].plot(collinfo[2,idx[j]],collinfo[1,idx[j]],'X',markersize=5,markerfacecolor=colj,\
+                              markeredgecolor='k',markeredgewidth=0.5,zorder=zordm,alpha=alphj)
+                
+            if output in ['semi_time','semi_time_zoom']:
                 #We check if the planet reaches its gap opening mass at any point
                 #of its evolution. If so, we increase the thickness of its
                 #plot line width
@@ -218,25 +253,36 @@ for k in range(0,4):
                     lw = lw3
                 else:
                     lw = lw4
-                axes.plot(time_big,semi_big,linewidth=lw,color=col,\
+                if im_idx is not None:
+                    pidx = im_idx+1
+                else:
+                    pidx = im_idx
+                axes.plot(time_big[:pidx],semi_big[:pidx],linewidth=lw,color='k',\
+                      zorder=zord,alpha=0.4)
+                axlist[k].plot(time_big[:pidx],semi_big[:pidx],linewidth=lw,color='k',\
+                  zorder=zord,alpha=0.4)
+                
+                if im_idx is not None:
+                    axes.plot(time_big[pidx-1:],semi_big[pidx-1:],linewidth=lw,color=col,\
                           zorder=zord,alpha=alph)
+                    axlist[k].plot(time_big[pidx-1:],semi_big[pidx-1:],linewidth=lw,color=col,\
+                      zorder=zord,alpha=alph)
+                    
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
                 axes.set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axes.set_ylim(amin,amax)
                 
-                axlist[k].plot(time_big,semi_big,linewidth=lw,color=col,\
-                      zorder=zord,alpha=alph)
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
                 axlist[k].set_ylim(amin,amax)
                 
                 #If the planet has reach its isolation mass we plot the corresponding 
                 #time and semi-major axis
-                if im_idx is not None:
-                    axes.plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=col,\
-                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm)
-                    axlist[k].plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=col,\
-                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm)
+#                if im_idx is not None:
+#                    axes.plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=col,\
+#                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm)
+#                    axlist[k].plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=col,\
+#                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm)
                 #If the planet survives the integration we plot a dot with a 
                 #size proportional to its mass at its final radius
                 if i in surv_ids:
@@ -245,6 +291,89 @@ for k in range(0,4):
                               zorder=3,ha='center',va='center')
                     axlist[k].text(time_big[-1],semi_big[-1],r'$\bullet$',fontsize=msize,color=col,\
                               zorder=3,ha='center',va='center')
+                #We check if the planet has undergone collisions and plot them
+                #if that's the case
+                if i in collinfo[0]:  
+                    idx = np.where(i==collinfo[0])[0]
+                    for j in range(len(idx)):    
+                        colj = col
+                        alphj = alph
+                        if im_idx is not None:
+                            cmass_idx = np.where(collinfo[1,idx[j]]==mass_big)[0]
+                            if cmass_idx<im_idx:
+                                colj = 'k'
+                                alphj = 0.4
+                        axes.plot(collinfo[2,idx[j]],collinfo[3,idx[j]],'X',markersize=5,markerfacecolor=colj,\
+                              markeredgecolor='k',markeredgewidth=0.5,zorder=zordm,alpha=alphj)
+                        axlist[k].plot(collinfo[2,idx[j]],collinfo[3,idx[j]],'X',markersize=5,markerfacecolor=colj,\
+                              markeredgecolor='k',markeredgewidth=0.5,zorder=zordm,alpha=alphj)
+                    
+            if output == 'mass_semi':
+                #We check if the planet reaches its gap opening mass at any point
+                #of its evolution. If so, we increase the thickness of its
+                #plot line width
+                gm_idx = check_gapmass(semi_big,mass_big,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis)
+                if gm_idx is None:
+                    lw = lw3
+                else:
+                    lw = lw4
+                if im_idx is not None:
+                    pidx = im_idx+1
+                else:
+                    pidx = im_idx
+                axes.plot(semi_big[:pidx],mass_big[:pidx],linewidth=lw,color='k',\
+                      zorder=zord,alpha=0.4)
+                axlist[k].plot(semi_big[:pidx],mass_big[:pidx],linewidth=lw,color='k',\
+                  zorder=zord,alpha=0.4)
+                
+                if im_idx is not None:
+                    axes.plot(semi_big[pidx-1:],mass_big[pidx-1:],linewidth=lw,color=col,\
+                          zorder=zord,alpha=alph)
+                    axlist[k].plot(semi_big[pidx-1:],mass_big[pidx-1:],linewidth=lw,color=col,\
+                      zorder=zord,alpha=alph)
+                    
+                axes.set_ylabel('${\\rm Mass \\ (M_{\\oplus})}$')
+                axes.set_xlabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
+                axes.set_ylim(mmin,mmax)
+                
+#                axlist[k].set_ylabel('${\\rm Mass \\ (M_{\\oplus})}$')
+                axlist[k].set_xlabel('$ {\\rm Semimajor \\ axis \\ (AU)}$')
+                axlist[k].set_ylim(mmin,mmax)
+                
+                #If the planet has reach its isolation mass we plot the corresponding 
+                #time and semi-major axis
+#                if im_idx is not None:
+#                    axes.plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=col,\
+#                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm)
+#                    axlist[k].plot(time_big[im_idx],semi_big[im_idx],'p',markersize=5,markerfacecolor=col,\
+#                          markeredgecolor='k',markeredgewidth=0.5,zorder=zordm)
+                
+                #If the planet survives the integration we plot a dot with a 
+                #size proportional to its mass at its final radius
+#                if i in surv_ids:
+#                    msize = mass_big[-1]**(1/3)
+#                    axes.text(semi_big[-1],mass_big[-1],r'$\bullet$',fontsize=msize,color=col,\
+#                              zorder=3,ha='center',va='center')
+#                    axlist[k].text(semi_big[-1],mass_big[-1],r'$\bullet$',fontsize=msize,color=col,\
+#                              zorder=3,ha='center',va='center')
+                
+                #We check if the planet has undergone collisions and plot them
+                #if that's the case
+                if i in collinfo[0]:  
+                    idx = np.where(i==collinfo[0])[0]
+                    for j in range(len(idx)):    
+                        colj = col
+                        alphj = alph
+                        if im_idx is not None:
+                            cmass_idx = np.where(collinfo[1,idx[j]]==mass_big)[0]
+                            if cmass_idx<im_idx:
+                                colj = 'k'
+                                alphj = 0.4
+                        axes.plot(collinfo[3,idx[j]],collinfo[1,idx[j]],'X',markersize=5,markerfacecolor=colj,\
+                              markeredgecolor='k',markeredgewidth=0.5,zorder=zordm,alpha=alphj)
+                        axlist[k].plot(collinfo[3,idx[j]],collinfo[1,idx[j]],'X',markersize=5,markerfacecolor=colj,\
+                              markeredgecolor='k',markeredgewidth=0.5,zorder=zordm,alpha=alphj)
+                
             if output =='ecc_time':
                 axes.plot(time_big,ecc_big,linewidth=lw3,color=col,alpha=alph,zorder=zord)
                 axes.set_xlabel('${\\rm Time \\ (yr)}$')
@@ -265,15 +394,31 @@ for k in range(0,4):
                 axlist[k].set_xlabel('${\\rm Time \\ (yr)}$')
                 axlist[k].set_ylabel('$ {\\rm Inclination (radian)}$')
                 axlist[k].set_ylim(imin,imax)
-            
-        axes.set_xlim(tmin,tmax)
+        
+        if output == 'semi_time_zoom':
+           axes.set_xlim(1e6,tmax)
+           axes.set_ylim(5,amax)
+        elif output == 'mass_semi':
+            axes.set_xlim(amin,amax)
+        else:
+            axes.set_xlim(tmin,tmax)
         axes.semilogx()
         axes.semilogy()
-#        axes.set_xticks([1e+2,1e+3,1e+4,1e+5,1e+6],['$10^{2}$','$10^{3}$','$10^{4}$','$10^{5}$','$10^{6}$'])
         
-        axlist[k].set_xlim(tmin,tmax)
         axlist[k].semilogx()
         axlist[k].semilogy()
+        if output == 'semi_time_zoom':
+           axlist[k].set_xlim(1e6,tmax)  
+           axlist[k].set_ylim(5,amax)
+           axlist[k].set_ylabel(None)
+           axlist[k].set_xscale('log')
+           axlist[k].set_xticks([1e+6,1.5e6,2e+6],['$10^6$','$1.5\cdot10^6$','$2\cdot10^6$'])
+#           axlist[k].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        elif output == 'mass_semi':
+            axlist[k].set_xlim(amin,amax)
+        else:
+            axlist[k].set_xlim(tmin,tmax)
+
 #        axlist[k].set_xticks([1e+2,1e+3,1e+4,1e+5,1e+6],['$10^{2}$','$10^{3}$','$10^{4}$','$10^{5}$','$10^{6}$'])
     
     fig.suptitle(r'$\tau_s = '+'{:.2E},\ '.format(st)+r'\alpha_t = '+'{:.2E},\ '.format(alpha_d)+r'\alpha_g = '+'{:.2E},\ '.format(alpha_v)+r'\kappa = '+'{:.2E}'.format(kap)+'$')

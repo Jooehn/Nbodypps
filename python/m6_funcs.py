@@ -403,6 +403,7 @@ def detect_merger():
     plist = []
     tlist = []
     mlist = []
+    alist = []
     
     with open('info.out','r') as infofile:
         for line in infofile:
@@ -416,10 +417,11 @@ def detect_merger():
         t = pdata[:,0]
         timeid = find_nearest(t,tlist[i])-1
         mlist.append(pdata[timeid,7])
+        alist.append(pdata[timeid,1])
     
     plistn = [int(i.strip('P')) for i in plist]
     
-    return np.asarray([plistn,np.asarray(mlist)*msuntome,np.asarray(tlist)/365.25])
+    return np.asarray([plistn,np.asarray(mlist)*msuntome,np.asarray(tlist)/365.25,np.asarray(alist)])
 
 def check_isomass(a,mp,mdot_gas,L_s,M_s,alpha_d,alpha_v,kap,opt_vis):
     """Goes through the semi-major axis values and mass values at every point in
